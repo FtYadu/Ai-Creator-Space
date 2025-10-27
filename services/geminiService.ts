@@ -64,6 +64,34 @@ export const db = {
     },
 };
 
+// --- FUNCTION CALLING SETUP ---
+export const GET_WEATHER_TOOL: FunctionDeclaration = {
+    name: "get_current_weather",
+    description: "Get the current weather in a given location",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            location: {
+                type: Type.STRING,
+                description: "The city and state, e.g. San Francisco, CA"
+            },
+        },
+        required: ["location"]
+    }
+};
+export const TOOLS_CONFIG = [{ functionDeclarations: [GET_WEATHER_TOOL] }];
+
+export const availableTools = {
+    get_current_weather: ({ location }: { location: string }) => {
+        if (location.toLowerCase().includes("tokyo")) {
+            return { weather: "sunny", temperature: "22°C" };
+        } else if (location.toLowerCase().includes("london")) {
+            return { weather: "rainy", temperature: "12°C" };
+        }
+        return { weather: "clear", temperature: "25°C" };
+    }
+};
+
 // FIX: API key must be obtained from process.env.API_KEY.
 const getApiKey = (): string => {
     const apiKey = process.env.API_KEY;

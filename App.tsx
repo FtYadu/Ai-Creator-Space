@@ -1,10 +1,13 @@
 
 
+
 import React, { useState, useCallback, useRef, useEffect, FC } from 'react';
 import { Tool, Settings, Theme, Project, MediaItem, DisplayMessage, MessagePart, MediaItemData, Notification } from './types';
 import * as geminiService from './services/geminiService';
-import { Chat, FunctionDeclaration, Type } from '@google/genai';
+import { Chat } from '@google/genai';
 import type { LiveSession } from './services/geminiService';
+import { TOOLS_CONFIG, availableTools } from './services/geminiService';
+
 
 // --- ICONS (Heroicons) ---
 const HomeIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M11.47 3.84a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.06l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 0 0 1.061 1.06l8.69-8.69Z" /><path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" /></svg>);
@@ -41,34 +44,6 @@ const ALL_TOOLS = [
     { id: Tool.CHAT, name: 'Chat Assistant', Icon: ChatBubbleLeftRightIcon, description: 'Get help with tasks, from quick questions to complex problems.' },
 ];
 const TOOL_MAP = new Map(ALL_TOOLS.map(t => [t.id, t]));
-
-// --- FUNCTION CALLING SETUP ---
-const GET_WEATHER_TOOL: FunctionDeclaration = {
-    name: "get_current_weather",
-    description: "Get the current weather in a given location",
-    parameters: {
-        type: Type.OBJECT,
-        properties: {
-            location: {
-                type: Type.STRING,
-                description: "The city and state, e.g. San Francisco, CA"
-            },
-        },
-        required: ["location"]
-    }
-};
-const TOOLS_CONFIG = [{ functionDeclarations: [GET_WEATHER_TOOL] }];
-
-const availableTools = {
-    get_current_weather: ({ location }: { location: string }) => {
-        if (location.toLowerCase().includes("tokyo")) {
-            return { weather: "sunny", temperature: "22°C" };
-        } else if (location.toLowerCase().includes("london")) {
-            return { weather: "rainy", temperature: "12°C" };
-        }
-        return { weather: "clear", temperature: "25°C" };
-    }
-};
 
 // --- ACCESSIBILITY HOOK ---
 const useFocusTrap = (ref: React.RefObject<HTMLElement>, isOpen: boolean) => {
