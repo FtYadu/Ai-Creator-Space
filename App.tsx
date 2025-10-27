@@ -1,7 +1,6 @@
 
 
 import React, { useState, useCallback, useRef, useEffect, FC } from 'react';
-// FIX: Import Notification type.
 import { Tool, Settings, Theme, Project, MediaItem, DisplayMessage, MessagePart, MediaItemData, Notification } from './types';
 import * as geminiService from './services/geminiService';
 import { Chat, FunctionDeclaration, Type } from '@google/genai';
@@ -9,10 +8,10 @@ import type { LiveSession } from './services/geminiService';
 
 // --- ICONS (Heroicons) ---
 const HomeIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M11.47 3.84a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.06l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 0 0 1.061 1.06l8.69-8.69Z" /><path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" /></svg>);
-const SparklesIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M9 4.5a.75.75 0 0 1 .721.544l.813 2.846a3.75 3.75 0 0 0 2.846.813l2.846-.813a.75.75 0 0 1 .976.976l-.813 2.846a3.75 3.75 0 0 0 .813 2.846l2.846.813a.75.75 0 0 1 0 1.442l-2.846.813a3.75 3.75 0 0 0-.813 2.846l.813 2.846a.75.75 0 0 1-.976.976l-2.846-.813a3.75 3.75 0 0 0-2.846.813l-.813 2.846a.75.75 0 0 1-1.442 0l-.813-2.846a3.75 3.75 0 0 0-2.846-.813l-2.846.813a.75.75 0 0 1-.976-.976l.813-2.846a3.75 3.75 0 0 0-.813-2.846l-2.846-.813a.75.75 0 0 1 0-1.442l2.846-.813a3.75 3.75 0 0 0 .813-2.846l-.813-2.846A.75.75 0 0 1 9 4.5ZM18 1.5a.75.75 0 0 1 .728.568l.258 1.036a.75.75 0 0 0 1.036.258l1.036-.258a.75.75 0 0 1 .965.965l-.258 1.036a.75.75 0 0 0 .258 1.036l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258a.75.75 0 0 0-.258 1.036l.258 1.036a.75.75 0 0 1-.965.965l-1.036-.258a.75.75 0 0 0-1.036.258l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a.75.75 0 0 0-1.036-.258l-1.036.258a.75.75 0 0 1-.965-.965l.258-1.036a.75.75 0 0 0-.258-1.036l-1.036-.258a.75.75 0 0 1 0-1.456l1.036.258a.75.75 0 0 0 .258-1.036l-.258-1.036a.75.75 0 0 1 .965.965l1.036.258a.75.75 0 0 0 1.036-.258l.258-1.036A.75.75 0 0 1 18 1.5ZM12 6a.75.75 0 0 1 .728.568l.258 1.036a.75.75 0 0 0 1.036.258l1.036-.258a.75.75 0 0 1 .965.965l-.258 1.036a.75.75 0 0 0 .258 1.036l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258a.75.75 0 0 0-.258 1.036l.258 1.036a.75.75 0 0 1-.965.965l-1.036-.258a.75.75 0 0 0-1.036.258l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a.75.75 0 0 0-1.036-.258l-1.036.258a.75.75 0 0 1-.965-.965l.258-1.036a.75.75 0 0 0-.258-1.036l-1.036-.258a.75.75 0 0 1 0-1.456l1.036.258a.75.75 0 0 0 .258-1.036l-.258-1.036a.75.75 0 0 1 .965.965l1.036.258a.75.75 0 0 0 1.036-.258l.258-1.036A.75.75 0 0 1 12 6Z" clipRule="evenodd" /></svg>);
-const PhotoIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25 2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06l2.755-2.755a.75.75 0 0 1 1.06 0l3.001 3.001a.75.75 0 0 0 1.06 0l1.53-1.531a.75.75 0 0 1 1.06 0l3.526 3.526a.75.75 0 0 0 1.06 0l2.365-2.365a.75.75 0 0 1 1.06 0V18a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75v-1.19Z" clipRule="evenodd" /></svg>);
+const SparklesIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M9 4.5a.75.75 0 0 1 .721.544l.813 2.846a3.75 3.75 0 0 0 2.846.813l2.846-.813a.75.75 0 0 1 .976.976l-.813 2.846a3.75 3.75 0 0 0 .813 2.846l2.846.813a.75.75 0 0 1 0 1.442l-2.846.813a3.75 3.75 0 0 0-.813 2.846l.813 2.846a.75.75 0 0 1-.976.976l-2.846-.813a3.75 3.75 0 0 0-2.846.813l-.813 2.846a.75.75 0 0 1-1.442 0l-.813-2.846a3.75 3.75 0 0 0-2.846-.813l-2.846.813a.75.75 0 0 1-.976-.976l.813-2.846a3.75 3.75 0 0 0-.813-2.846l-2.846-.813a.75.75 0 0 1 0-1.442l2.846-.813a3.75 3.75 0 0 0 .813-2.846l-.813-2.846A.75.75 0 0 1 9 4.5ZM18 1.5a.75.75 0 0 1 .728.568l.258 1.036a.75.75 0 0 0 1.036.258l1.036-.258a.75.75 0 0 1 .965.965l-.258 1.036a.75.75 0 0 0 .258 1.036l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258a.75.75 0 0 0-.258 1.036l.258 1.036a.75.75 0 0 1-.965.965l-1.036-.258a.75.75 0 0 0-1.036.258l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a.75.75 0 0 0-1.036-.258l-1.036.258a.75.75 0 0 1-.965-.965l.258-1.036a.75.75 0 0 0-.258-1.036l-1.036-.258a.75.75 0 0 1 0-1.456l1.036.258a.75.75 0 0 0 .258-1.036l-.258-1.036a.75.75 0 0 1 .965.965l1.036.258a.75.75 0 0 0 1.036.258l.258-1.036A.75.75 0 0 1 18 1.5ZM12 6a.75.75 0 0 1 .728.568l.258 1.036a.75.75 0 0 0 1.036.258l1.036-.258a.75.75 0 0 1 .965.965l-.258 1.036a.75.75 0 0 0 .258 1.036l1.036.258a.75.75 0 0 1 0 1.456l-1.036.258a.75.75 0 0 0-.258 1.036l.258 1.036a.75.75 0 0 1-.965.965l-1.036-.258a.75.75 0 0 0-1.036.258l-.258 1.036a.75.75 0 0 1-1.456 0l-.258-1.036a.75.75 0 0 0-1.036-.258l-1.036.258a.75.75 0 0 1-.965-.965l.258-1.036a.75.75 0 0 0-.258-1.036l-1.036-.258a.75.75 0 0 1 0-1.456l1.036.258a.75.75 0 0 0 .258-1.036l-.258-1.036a.75.75 0 0 1 .965.965l1.036.258a.75.75 0 0 0 1.036.258l.258-1.036A.75.75 0 0 1 12 6Z" clipRule="evenodd" /></svg>);
+const PhotoIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M1.5 6a2.25 2.25 0 0 1 2.25-2.25h16.5A2.25 2.25 0 0 1 22.5 6v12a2.25 2.25 0 0 1-2.25-2.25H3.75A2.25 2.25 0 0 1 1.5 18V6ZM3 16.06l2.755-2.755a.75.75 0 0 1 1.06 0l3.001 3.001a.75.75 0 0 0 1.06 0l1.53-1.531a.75.75 0 0 1 1.06 0l3.526 3.526a.75.75 0 0 0 1.06 0l2.365-2.365a.75.75 0 0 1 1.06 0V18a.75.75 0 0 1-.75.75H3.75a.75.75 0 0 1-.75-.75v-1.19Z" clipRule="evenodd" /></svg>);
 const FilmIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M4.5 4.5a3 3 0 0 0-3 3v9a3 3 0 0 0 3 3h15a3 3 0 0 0 3-3v-9a3 3 0 0 0-3-3h-15ZM21 9a1.5 1.5 0 0 0-1.5-1.5H18a1.5 1.5 0 0 0-1.5 1.5v6.042a1.5 1.5 0 0 0 1.5 1.5h1.5a1.5 1.5 0 0 0 1.5-1.5V9ZM16.5 9a1.5 1.5 0 0 0-1.5-1.5H12a1.5 1.5 0 0 0-1.5 1.5v6.042a1.5 1.5 0 0 0 1.5 1.5h3a1.5 1.5 0 0 0 1.5-1.5V9ZM9 9a1.5 1.5 0 0 0-1.5-1.5H6A1.5 1.5 0 0 0 4.5 9v6.042a1.5 1.5 0 0 0 1.5 1.5h1.5A1.5 1.5 0 0 0 9 15.042V9Z" /></svg>);
-const PaintBrushIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M10.125 2.25a.75.75 0 0 1 .75.75v3.375a.75.75 0 0 1-1.5 0V3.75a2.25 2.25 0 0 0-2.25-2.25h-1.5a2.25 2.25 0 0 0-2.25 2.25V6.75a2.25 2.25 0 0 0 2.25 2.25h1.5a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-1.5 0V10.5a.75.75 0 0 0-.75-.75h-1.5a3.75 3.75 0 0 1-3.75-3.75V3.75a3.75 3.75 0 0 1 3.75-3.75h1.5a.75.75 0 0 1 .75.75Z" /><path d="M13.875 10.5a.75.75 0 0 1 .75-.75h1.5a3.75 3.75 0 0 1 3.75 3.75v3.375a3.75 3.75 0 0 1-3.75 3.75h-1.5a.75.75 0 0 1-.75-.75V10.5Z" /></svg>);
+const PaintBrushIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M10.125 2.25a.75.75 0 0 1 .75.75v3.375a.75.75 0 0 1-1.5 0V3.75a2.25 2.25 0 0 0-2.25-2.25h-1.5a2.25 2.25 0 0 0-2.25 2.25V6.75a2.25 2.25 0 0 0 2.25 2.25h1.5a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-1.5 0V10.5a.75.75 0 0 0-.75-.75h-1.5a3.75 3.75 0 0 1-3.75-3.75V3.75a3.75 3.75 0 0 1 3.75-3.75h1.5a.75.75 0 0 1 .75.75Z" /><path d="M13.875 10.5a.75.75 0 0 1 .75-.75h1.5a3.75 3.75 0 0 1 3.75 3.75v3.375a3.75 3.75 0 0 1-3.75-3.75h-1.5a.75.75 0 0 1-.75-.75V10.5Z" /></svg>);
 const EyeIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" /><path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a.75.75 0 0 1 0-1.113ZM17.25 12a5.25 5.25 0 1 1-10.5 0 5.25 5.25 0 0 1 10.5 0Z" clipRule="evenodd" /></svg>);
 const MicrophoneIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M8.25 4.5a3.75 3.75 0 1 1 7.5 0v8.25a3.75 3.75 0 1 1-7.5 0V4.5Z" /><path d="M6 12.75A.75.75 0 0 1 5.25 12v-1.5a.75.75 0 0 1 1.5 0v1.5A.75.75 0 0 1 6 12.75ZM12 18.75a.75.75 0 0 1-.75-.75V16.5a.75.75 0 0 1 1.5 0v1.5a.75.75 0 0 1-.75.75ZM18 12.75a.75.75 0 0 1-.75-.75v-1.5a.75.75 0 0 1 1.5 0v1.5a.75.75 0 0 1-.75.75ZM12 12.75a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5h1.5ZM15.75 12a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5a.75.75 0 0 1 .75.75ZM12 15.75a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5h1.5Z" /><path fillRule="evenodd" d="M12 21a8.25 8.25 0 0 0 8.25-8.25.75.75 0 0 0-1.5 0A6.75 6.75 0 0 1 12 19.5a6.75 6.75 0 0 1-6.75-6.75.75.75 0 0 0-1.5 0A8.25 8.25 0 0 0 12 21Z" clipRule="evenodd" /></svg>);
 const SpeakerWaveIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.318.664-2.66 1.905A9.76 9.76 0 0 0 1.5 12c0 .898.121 1.768.35 2.595.341 1.24 1.518 1.905 2.66 1.905H6.44l4.5 4.5c.945.945 2.56.276 2.56-1.06V4.06ZM18.584 5.106a.75.75 0 0 1 1.06 0c3.808 3.807 3.808 9.98 0 13.788a.75.75 0 1 1-1.06-1.06 8.25 8.25 0 0 0 0-11.668.75.75 0 0 1 0-1.06Z" /><path d="M15.932 7.757a.75.75 0 0 1 1.061 0 4.5 4.5 0 0 1 0 6.364.75.75 0 0 1-1.06-1.061 3 3 0 0 0 0-4.242.75.75 0 0 1 0-1.061Z" /></svg>);
@@ -114,7 +113,6 @@ const useFocusTrap = (ref: React.RefObject<HTMLElement>, isOpen: boolean) => {
 
 // --- SHARED COMPONENTS ---
 
-// FIX: Forward ref to allow attaching refs to this component for focus trapping.
 const GlassContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ children, className, ...rest }, ref) => (
     <div ref={ref} {...rest} className={`bg-white/50 dark:bg-gray-800/20 backdrop-blur-xl border border-black/10 dark:border-white/10 rounded-2xl shadow-lg transition-colors duration-300 ${className || ''}`}>
         {children}
@@ -131,7 +129,6 @@ const Loader: FC<{ message: string }> = ({ message }) => (
     </div>
 );
 
-// FIX: Forward ref to allow attaching refs to this component.
 const Button = React.forwardRef<HTMLButtonElement, { onClick: (e?: React.MouseEvent<HTMLButtonElement>) => void; children: React.ReactNode; className?: string; disabled?: boolean; variant?: 'primary' | 'secondary' }>(({ onClick, children, className, disabled, variant='primary' }, ref) => {
     const baseClasses = `px-6 py-3 font-semibold rounded-lg shadow-md transition-all duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed`;
     const variantClasses = variant === 'primary' 
@@ -572,7 +569,6 @@ const VoiceAssistant: FC<ToolContentProps> = ({}) => {
         };
     };
     
-    // FIX: Use robust audio encoding function as per guidelines
     const encodeAudio = (bytes: Uint8Array) => {
         let binary = '';
         const len = bytes.byteLength;
@@ -773,21 +769,18 @@ const ChatAssistant: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
                 }
                 
                 const currentTextPart = currentModelMessage.parts.find(p => 'text' in p) as { text: string };
-                currentTextPart.text += chunk.text;
+                if (currentTextPart) {
+                    currentTextPart.text += chunk.text;
+                }
+                
                 const functionCalls = chunk.candidates?.[0]?.content?.parts.filter(p => p.functionCall);
 
                 if (functionCalls && functionCalls.length > 0) {
                     currentModelMessage.parts.push(...functionCalls as MessagePart[]);
                 }
                 
-                const newMessages = [...messages];
-                const msgIndex = newMessages.findIndex(m => m.id === currentModelMessage.id);
-                if (msgIndex !== -1) {
-                    newMessages[msgIndex] = { ...currentModelMessage };
-                    setMessages(newMessages);
-                } else {
-                    setMessages(prev => [...prev, currentModelMessage]);
-                }
+                setMessages(prev => prev.map(m => m.id === currentModelMessage.id ? { ...currentModelMessage } : m));
+
             }
 
             const finalModelParts = currentModelMessage.parts.filter(p => 'functionCall' in p);
@@ -809,7 +802,9 @@ const ChatAssistant: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
                                     firstToolChunk = false;
                                 }
                                 const currentToolTextPart = toolModelMessage.parts.find(p => 'text' in p) as {text: string};
-                                currentToolTextPart.text += chunk.text;
+                                if (currentToolTextPart) {
+                                    currentToolTextPart.text += chunk.text;
+                                }
                                 setMessages(prev => prev.map(m => m.id === toolModelMessage.id ? {...toolModelMessage} : m));
                             }
                         }
@@ -905,7 +900,7 @@ const ToolView: FC<{ toolId: Tool, onBack: () => void } & ToolContentProps> = ({
     );
 };
 
-// --- SETTINGS MODAL ---
+// --- MODALS & PANELS ---
 
 const SettingsModal: FC<{ isOpen: boolean; onClose: () => void; settings: Settings; onSave: (newSettings: Settings) => void; }> = ({ isOpen, onClose, settings, onSave }) => {
     const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
@@ -971,7 +966,7 @@ const SaveToProjectModal: FC<{ projects: Project[], onSave: (projectId: string) 
 
     useEffect(() => {
         if(projects.length > 0 && !selectedProject) setSelectedProject(projects[0].id)
-    }, [projects, selectedProject]);
+    }, [projects, selectedProject, isOpen]);
     
     const handleOpen = () => { if (projects.length > 0) setIsOpen(true); };
     const handleClose = () => setIsOpen(false);
@@ -1012,13 +1007,12 @@ const MediaDisplay: FC<{item: MediaItem}> = ({ item }) => {
         };
     }, [item]);
 
-    if (item.type === 'image' && url) return <img src={url} className="w-full h-full object-cover"/>
+    if (item.type === 'image' && url) return <img src={url} alt={item.prompt || 'Generated Image'} className="w-full h-full object-cover"/>
     if (item.type === 'video' && url) return <video src={url} controls className="w-full h-full object-cover"/>
     if (item.type === 'chat') return <div className="p-2 flex items-center justify-center h-full"><ChatBubbleLeftRightIcon className="w-1/2 h-1/2 mx-auto text-gray-400"/></div>
 
     return <div className="w-full h-full bg-black/10 dark:bg-white/10 animate-pulse"></div>;
 }
-
 
 const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProject }) => {
     const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
@@ -1038,32 +1032,93 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
     }
     
     const activeProjectMedia = mediaItems.filter(m => m.projectId === activeProjectId);
+
     return (
         <div className="flex h-full">
-            <div className="w-1/3 border-r border-black/10 dark:border-white/10 p-4 space-y-2 flex flex-col">
+            <div className="w-full md:w-1/3 border-r border-black/10 dark:border-white/10 p-4 space-y-2 flex flex-col">
                 <h3 className="font-bold text-lg mb-2">Projects</h3>
                 <div className="flex-grow overflow-y-auto space-y-2">
-                    {projects.map(p => <button key={p.id} onClick={() => setActiveProjectId(p.id)} className={`w-full text-left p-2 rounded ${activeProjectId === p.id ? 'bg-purple-500/30' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}>{p.name}</button>)}
+                    {projects.map(p => <button key={p.id} onClick={() => setActiveProjectId(p.id)} className={`w-full text-left p-2 rounded-lg transition-colors ${activeProjectId === p.id ? 'bg-purple-500/30' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}>{p.name}</button>)}
                 </div>
                 <div className="flex gap-2 mt-2">
-                    <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} placeholder="New Project Name" className="flex-grow p-2 bg-black/5 dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"/>
-                    <Button onClick={handleAddProject} className="p-2 h-10 w-10 !px-0"><PlusCircleIcon className="w-6 h-6"/></Button>
+                    <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} onKeyDown={e => {if(e.key === 'Enter') handleAddProject()}} placeholder="New Project Name" className="flex-grow p-2 bg-black/5 dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"/>
+                    <Button onClick={handleAddProject} className="p-2 h-10 w-10 !px-0 flex-shrink-0"><PlusCircleIcon className="w-6 h-6"/></Button>
                 </div>
             </div>
-            <div className="w-2/3 p-4 overflow-y-auto">
+            <div className="w-full md:w-2/3 p-4 overflow-y-auto">
                 <h3 className="font-bold text-lg mb-4">{projects.find(p=>p.id===activeProjectId)?.name || 'Select a Project'}</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {activeProjectMedia.map(item => (
-                        <div key={item.id} className="aspect-square rounded-lg overflow-hidden bg-black/5 dark:bg-white/5">
-                            <MediaDisplay item={item} />
+                {activeProjectId ? (
+                    activeProjectMedia.length > 0 ? (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {activeProjectMedia.map(item => (
+                                <div key={item.id} className="aspect-square rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 shadow-inner">
+                                    <MediaDisplay item={item} />
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-                 {activeProjectMedia.length === 0 && <p className="text-gray-500">No media in this project yet.</p>}
+                    ) : (
+                        <p className="text-gray-500 dark:text-gray-400 mt-4">No media in this project yet. Go create something!</p>
+                    )
+                ) : (
+                     <p className="text-gray-500 dark:text-gray-400 mt-4">Create or select a project to view media.</p>
+                )}
             </div>
         </div>
     )
 };
+
+
+const NotificationPanel: FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    notifications: Notification[];
+    onMarkAllRead: () => void;
+    onClearAll: () => void;
+    triggerRef: React.RefObject<HTMLButtonElement>;
+}> = ({ isOpen, onClose, notifications, onMarkAllRead, onClearAll, triggerRef }) => {
+    const panelRef = useRef<HTMLDivElement>(null);
+    useFocusTrap(panelRef, isOpen);
+    
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        if(isOpen) document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+    
+    if(!isOpen) return null;
+
+    return (
+        <div ref={panelRef} className="fixed top-20 left-4 md:left-72 z-50">
+             <GlassContainer className="w-80 max-h-[400px] flex flex-col shadow-2xl">
+                <div className="p-4 border-b border-black/10 dark:border-white/10 flex justify-between items-center">
+                    <h3 className="font-bold">Notifications</h3>
+                    <button onClick={onClose} aria-label="Close notifications" className="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><XMarkIcon className="w-5 h-5"/></button>
+                </div>
+                {notifications.length > 0 ? (
+                    <>
+                        <div className="flex-grow overflow-y-auto p-2 space-y-1">
+                            {notifications.map(n => (
+                                <div key={n.id} className={`p-2 rounded-lg ${!n.read ? 'bg-purple-500/10' : ''}`}>
+                                    <p className="text-sm">{n.message}</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{new Date(n.timestamp).toLocaleString()}</p>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="p-2 border-t border-black/10 dark:border-white/10 flex justify-between">
+                            <button onClick={onMarkAllRead} className="text-sm text-purple-500 hover:underline">Mark all as read</button>
+                            <button onClick={onClearAll} className="text-sm text-red-500 hover:underline">Clear all</button>
+                        </div>
+                    </>
+                ) : (
+                    <p className="p-8 text-center text-gray-500">No notifications yet.</p>
+                )}
+            </GlassContainer>
+        </div>
+    );
+};
+
 
 // --- MAIN APP ---
 const DEFAULT_SETTINGS: Settings = { userProfile: { name: 'Creator', avatar: '' }, apiConfigs: {}, theme: 'dark' };
@@ -1088,6 +1143,7 @@ const App: React.FC = () => {
             try {
                 const storedSettings = localStorage.getItem('creatorSpaceSettings');
                 if (storedSettings) setSettings(JSON.parse(storedSettings));
+                else localStorage.setItem('creatorSpaceSettings', JSON.stringify(DEFAULT_SETTINGS));
                 
                 const storedToolOrder = localStorage.getItem('creatorSpaceToolOrder');
                 if(storedToolOrder) setToolOrder(JSON.parse(storedToolOrder));
@@ -1196,7 +1252,7 @@ const App: React.FC = () => {
         return <div className="min-h-screen flex items-center justify-center bg-gray-900"><Loader message="Loading Creator Space..."/></div>;
     }
 
-    const orderedTools = toolOrder.map(id => TOOL_MAP.get(id)).filter(Boolean) as (typeof ALL_TOOLS)[0][];
+    const orderedTools = toolOrder.map(id => ALL_TOOLS.find(t => t.id === id)).filter(Boolean) as (typeof ALL_TOOLS)[0][];
 
     return (
         <>
@@ -1263,58 +1319,5 @@ const App: React.FC = () => {
         </>
     );
 };
-
-// --- NOTIFICATION PANEL ---
-const NotificationPanel: FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    notifications: Notification[];
-    onMarkAllRead: () => void;
-    onClearAll: () => void;
-    triggerRef: React.RefObject<HTMLButtonElement>;
-}> = ({ isOpen, onClose, notifications, onMarkAllRead, onClearAll, triggerRef }) => {
-    const panelRef = useRef<HTMLDivElement>(null);
-    useFocusTrap(panelRef, isOpen);
-    
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
-        if(isOpen) document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, onClose]);
-    
-    if(!isOpen) return null;
-
-    return (
-        <div ref={panelRef} className="fixed top-20 left-4 md:left-72 z-50">
-             <GlassContainer className="w-80 max-h-[400px] flex flex-col shadow-2xl">
-                <div className="p-4 border-b border-black/10 dark:border-white/10 flex justify-between items-center">
-                    <h3 className="font-bold">Notifications</h3>
-                    <button onClick={onClose} aria-label="Close notifications" className="p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><XMarkIcon className="w-5 h-5"/></button>
-                </div>
-                {notifications.length > 0 ? (
-                    <>
-                        <div className="flex-grow overflow-y-auto p-2 space-y-1">
-                            {notifications.map(n => (
-                                <div key={n.id} className={`p-2 rounded-lg ${!n.read ? 'bg-purple-500/10' : ''}`}>
-                                    <p className="text-sm">{n.message}</p>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{new Date(n.timestamp).toLocaleString()}</p>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="p-2 border-t border-black/10 dark:border-white/10 flex justify-between">
-                            <button onClick={onMarkAllRead} className="text-sm text-purple-500 hover:underline">Mark all as read</button>
-                            <button onClick={onClearAll} className="text-sm text-red-500 hover:underline">Clear all</button>
-                        </div>
-                    </>
-                ) : (
-                    <p className="p-8 text-center text-gray-500">No notifications yet.</p>
-                )}
-            </GlassContainer>
-        </div>
-    );
-};
-
 
 export default App;
