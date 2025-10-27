@@ -2,7 +2,9 @@
 import React, { useState, useCallback, useRef, useEffect, FC } from 'react';
 import { Tool } from './types';
 import * as geminiService from './services/geminiService';
-import { LiveSession, Blob as GenAiBlob, Chat } from '@google/genai';
+import { Blob as GenAiBlob, Chat } from '@google/genai';
+// Fix: Import LiveSession from geminiService where it's correctly typed.
+import type { LiveSession } from './services/geminiService';
 
 // --- ICONS (Heroicons) ---
 const HomeIcon: FC<{ className?: string }> = ({ className }) => (<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M11.47 3.84a.75.75 0 0 1 1.06 0l8.69 8.69a.75.75 0 1 0 1.06-1.06l-8.689-8.69a2.25 2.25 0 0 0-3.182 0l-8.69 8.69a.75.75 0 0 0 1.061 1.06l8.69-8.69Z" /><path d="m12 5.432 8.159 8.159c.03.03.06.058.091.086v6.198c0 1.035-.84 1.875-1.875 1.875H15a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 0-.75-.75h-3a.75.75 0 0 0-.75.75V21a.75.75 0 0 1-.75.75H5.625a1.875 1.875 0 0 1-1.875-1.875v-6.198a2.29 2.29 0 0 0 .091-.086L12 5.432Z" /></svg>);
@@ -60,22 +62,76 @@ interface FileUploaderProps {
     onFileUpload: (file: File) => void;
     accept: string;
     label: string;
+    uploadProgress?: number | null;
 }
-const FileUploader: FC<FileUploaderProps> = ({ onFileUpload, accept, label }) => {
+const FileUploader: FC<FileUploaderProps> = ({ onFileUpload, accept, label, uploadProgress }) => {
     const [fileName, setFileName] = useState('');
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            onFileUpload(e.target.files[0]);
-            setFileName(e.target.files[0].name);
+    const [isDragging, setIsDragging] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const handleFile = (file: File) => {
+        const validTypes = accept.split(',').map(t => t.trim().replace('/*', ''));
+        if (file && validTypes.some(type => file.type.startsWith(type))) {
+            onFileUpload(file);
+            setFileName(file.name);
+        } else {
+             // Optional: Show an error message for invalid file types
+            console.error("Invalid file type");
         }
     };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            handleFile(e.target.files[0]);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+    
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+    };
+
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            handleFile(e.dataTransfer.files[0]);
+        }
+    };
+    
+    const handleClick = () => {
+        inputRef.current?.click();
+    };
+
     return (
-        <label className="w-full cursor-pointer flex items-center justify-center px-4 py-3 bg-white/5 border-2 border-dashed border-white/20 rounded-lg hover:bg-white/10 transition-colors">
-            <span className="text-gray-300">{fileName || label}</span>
-            <input type="file" className="hidden" accept={accept} onChange={handleChange} />
-        </label>
+        <div 
+            onClick={handleClick}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`w-full cursor-pointer flex flex-col items-center justify-center p-6 bg-white/5 border-2 border-dashed rounded-lg hover:bg-white/10 transition-all duration-300 ${isDragging ? 'border-purple-500 bg-purple-900/30' : 'border-white/20'}`}
+        >
+            <input ref={inputRef} type="file" className="hidden" accept={accept} onChange={handleChange} />
+            <PhotoIcon className="w-10 h-10 text-gray-400 mb-2" />
+            <span className="text-gray-300 text-center">{fileName || label}</span>
+            <span className="text-xs text-gray-500 mt-1">or drag and drop</span>
+            {uploadProgress != null && (
+                 <div className="w-full bg-gray-700 rounded-full h-2.5 mt-4">
+                    <div className="bg-purple-600 h-2.5 rounded-full" style={{ width: `${uploadProgress}%` }}></div>
+                </div>
+            )}
+        </div>
     );
 };
+
 
 // --- TOOL COMPONENTS ---
 
@@ -160,10 +216,13 @@ const ImageEditor: FC = () => {
     const [result, setResult] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
     const handleFileChange = (selectedFile: File) => {
         setFile(selectedFile);
         setPreview(URL.createObjectURL(selectedFile));
+        setUploadProgress(null);
+        setResult(null);
     };
 
     const handleSubmit = async () => {
@@ -174,14 +233,17 @@ const ImageEditor: FC = () => {
         setLoading(true);
         setError('');
         setResult(null);
+        setUploadProgress(0);
         try {
-            const base64 = await geminiService.fileToBase64(file);
+            const base64 = await geminiService.fileToBase64(file, setUploadProgress);
+            setUploadProgress(null);
             const image = await geminiService.editImage(base64, file.type, prompt);
             setResult(image);
         } catch (err: any) {
             setError(err.message);
         } finally {
             setLoading(false);
+            setUploadProgress(null);
         }
     };
 
@@ -189,7 +251,12 @@ const ImageEditor: FC = () => {
         <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                    <FileUploader onFileUpload={handleFileChange} accept="image/*" label="Upload Image" />
+                    <FileUploader 
+                        onFileUpload={handleFileChange} 
+                        accept="image/*" 
+                        label="Upload or Drop Image" 
+                        uploadProgress={uploadProgress} 
+                    />
                     {preview && <img src={preview} alt="Preview" className="rounded-lg w-full" />}
                 </div>
                 <div className="space-y-4">
@@ -203,7 +270,7 @@ const ImageEditor: FC = () => {
                 </div>
             </div>
             {error && <p className="text-red-400">{error}</p>}
-            {loading && <Loader message="Applying your edits..." />}
+            {loading && uploadProgress === null && <Loader message="Applying your edits..." />}
             {result && <div className="mt-6"><h3 className="text-lg font-semibold mb-2">Result</h3><img src={result} alt="Edited" className="rounded-lg w-full" /></div>}
         </div>
     );
@@ -215,10 +282,13 @@ const ImageAnalyzer: FC = () => {
     const [result, setResult] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
 
     const handleFileChange = (selectedFile: File) => {
         setFile(selectedFile);
         setPreview(URL.createObjectURL(selectedFile));
+        setUploadProgress(null);
+        setResult(null);
     };
 
     const handleSubmit = async () => {
@@ -229,25 +299,33 @@ const ImageAnalyzer: FC = () => {
         setLoading(true);
         setError('');
         setResult(null);
+        setUploadProgress(0);
         try {
-            const base64 = await geminiService.fileToBase64(file);
+            const base64 = await geminiService.fileToBase64(file, setUploadProgress);
+            setUploadProgress(null);
             const analysis = await geminiService.analyzeContent([{ inlineData: { mimeType: file.type, data: base64 } }, 'Describe this image in detail.']);
             setResult(analysis);
         } catch (err: any) {
             setError(err.message);
         } finally {
             setLoading(false);
+            setUploadProgress(null);
         }
     };
 
     return (
         <div className="space-y-6">
-            <FileUploader onFileUpload={handleFileChange} accept="image/*" label="Upload Image to Analyze" />
+            <FileUploader 
+                onFileUpload={handleFileChange} 
+                accept="image/*" 
+                label="Upload or Drop Image to Analyze"
+                uploadProgress={uploadProgress}
+            />
             <div className="flex justify-center">
                 <Button onClick={handleSubmit} disabled={loading || !file}>Analyze Image</Button>
             </div>
             {error && <p className="text-red-400">{error}</p>}
-            {loading && <Loader message="Analyzing image..." />}
+            {loading && uploadProgress === null && <Loader message="Analyzing image..." />}
             {preview && <img src={preview} alt="Preview" className="rounded-lg w-full max-w-md mx-auto" />}
             {result && <div className="mt-6 bg-white/5 p-4 rounded-lg"><h3 className="text-lg font-semibold mb-2">Analysis</h3><p className="whitespace-pre-wrap">{result}</p></div>}
         </div>
@@ -289,7 +367,7 @@ const VideoGenerator: FC = () => {
         try {
             let imagePayload: { base64: string; mimeType: string } | null = null;
             if (file) {
-                const base64 = await geminiService.fileToBase64(file);
+                const base64 = await geminiService.fileToBase64(file, () => {});
                 imagePayload = { base64, mimeType: file.type };
             }
             const videoUrl = await geminiService.generateVideo(prompt, imagePayload, aspectRatio, setLoadingMessage);
@@ -689,7 +767,8 @@ const ChatAssistant: FC = () => {
                         const newMessages = [...prev];
                         const lastMessage = newMessages[newMessages.length - 1];
                         if (lastMessage && lastMessage.role === 'model') {
-                            lastMessage.text = modelResponse;
+                            // Fix: Prevent state mutation by creating a new object for the last message.
+                            newMessages[newMessages.length - 1] = { ...lastMessage, text: modelResponse };
                         }
                         return newMessages;
                     });

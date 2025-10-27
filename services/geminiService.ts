@@ -1,12 +1,30 @@
 
-import { GoogleGenAI, Modality, Type, GenerateContentResponse, LiveSession, Chat } from "@google/genai";
+import { GoogleGenAI, Modality, Type, GenerateContentResponse, Chat } from "@google/genai";
+
+// Fix: Create a single AI instance to be shared, except for video generation.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+// Fix: Define and export LiveSession type as it's not exported from the library.
+export type LiveSession = Awaited<ReturnType<typeof ai.live.connect>>;
+
 
 // Helper to convert a file to a base64 string
-export const fileToBase64 = (file: File): Promise<string> => {
+export const fileToBase64 = (file: File, onProgress: (progress: number) => void): Promise<string> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = () => resolve((reader.result as string).split(',')[1]);
+
+        reader.onprogress = (event) => {
+            if (event.lengthComputable) {
+                const progress = Math.round((event.loaded / event.total) * 100);
+                onProgress(progress);
+            }
+        };
+
+        reader.onload = () => {
+            onProgress(100); // Ensure it completes to 100%
+            resolve((reader.result as string).split(',')[1]);
+        };
         reader.onerror = (error) => reject(error);
     });
 };
@@ -44,7 +62,6 @@ const decodeAudioData = async (
 // --- Gemini API Calls ---
 
 export const generateImage = async (prompt: string, aspectRatio: string): Promise<string> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt,
@@ -60,7 +77,6 @@ export const generateImage = async (prompt: string, aspectRatio: string): Promis
 };
 
 export const editImage = async (base64Image: string, mimeType: string, prompt: string): Promise<string> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: {
@@ -84,7 +100,6 @@ export const editImage = async (base64Image: string, mimeType: string, prompt: s
 };
 
 export const analyzeContent = async (parts: (string | { inlineData: { mimeType: string; data: string } })[]): Promise<string> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const formattedParts = parts.map(part => typeof part === 'string' ? { text: part } : part);
     const response: GenerateContentResponse = await ai.models.generateContent({
         model: 'gemini-2.5-pro',
@@ -99,6 +114,7 @@ export const generateVideo = async (
     aspectRatio: "16:9" | "9:16",
     onStatusUpdate: (message: string) => void
 ): Promise<string> => {
+    // Fix: Per guidelines, create a new instance for Veo models to get the latest API key.
     const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     
     onStatusUpdate("Initializing video generation...");
@@ -141,7 +157,6 @@ export const generateVideo = async (
 };
 
 export const createChatSession = (model: string, systemInstruction: string): Chat => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const modelConfig = model === 'gemini-2.5-pro'
         ? { thinkingConfig: { thinkingBudget: 32768 } }
         : {};
@@ -156,7 +171,6 @@ export const createChatSession = (model: string, systemInstruction: string): Cha
 };
 
 export const generateSpeech = async (text: string, voiceName: string): Promise<AudioBuffer> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: `Say: ${text}` }] }],
@@ -181,8 +195,6 @@ export const startConversationSession = (
     onAudioOutput: (audioBuffer: AudioBuffer) => void,
     onInterrupted: () => void,
 ): Promise<LiveSession> => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    
     let currentInputTranscription = '';
     let currentOutputTranscription = '';
     const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
