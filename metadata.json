@@ -1,0 +1,7 @@
+{
+  "name": "Creator Space",
+  "description": "A comprehensive suite of AI-powered tools for content creation. Generate and edit images, videos, and audio with Gemini. Analyze content, transcribe audio, and get assistance with complex queries in a modern, streamlined workspace.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
