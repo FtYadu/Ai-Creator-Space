@@ -1,11 +1,82 @@
 
-import { GoogleGenAI, Modality, Type, GenerateContentResponse, Chat } from "@google/genai";
+import { GoogleGenAI, Modality, Type, GenerateContentResponse, Chat, FunctionDeclaration } from "@google/genai";
 
-// Fix: Create a single AI instance to be shared, except for video generation.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// --- IndexedDB Service ---
+const DB_NAME = 'CreatorSpaceDB';
+const DB_VERSION = 1;
+const PROJECTS_STORE = 'projects';
+const MEDIA_STORE = 'mediaItems';
+
+let dbPromise: Promise<IDBDatabase> | null = null;
+
+const getDb = (): Promise<IDBDatabase> => {
+    if (dbPromise) {
+        return dbPromise;
+    }
+    dbPromise = new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onerror = () => reject(new Error('Failed to open IndexedDB.'));
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            if (!db.objectStoreNames.contains(PROJECTS_STORE)) {
+                db.createObjectStore(PROJECTS_STORE, { keyPath: 'id' });
+            }
+            if (!db.objectStoreNames.contains(MEDIA_STORE)) {
+                const mediaStore = db.createObjectStore(MEDIA_STORE, { keyPath: 'id' });
+                mediaStore.createIndex('projectId', 'projectId', { unique: false });
+            }
+        };
+    });
+    return dbPromise;
+};
+
+export const db = {
+    getAll: async <T>(storeName: string): Promise<T[]> => {
+        const db = await getDb();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(storeName, 'readonly');
+            const store = transaction.objectStore(storeName);
+            const request = store.getAll();
+            request.onerror = () => reject(new Error(`Failed to get all from ${storeName}`));
+            request.onsuccess = () => resolve(request.result);
+        });
+    },
+    add: async <T>(storeName: string, item: T): Promise<void> => {
+        const db = await getDb();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(storeName, 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.add(item);
+            request.onerror = () => reject(new Error(`Failed to add to ${storeName}`));
+            request.onsuccess = () => resolve();
+        });
+    },
+    put: async <T>(storeName: string, item: T): Promise<void> => {
+        const db = await getDb();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(storeName, 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.put(item);
+            request.onerror = () => reject(new Error(`Failed to put in ${storeName}`));
+            request.onsuccess = () => resolve();
+        });
+    },
+};
+
+// FIX: API key must be obtained from process.env.API_KEY.
+const getApiKey = (): string => {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+        throw new Error('Gemini API key not found in process.env.API_KEY. For video generation, ensure a key is selected in the UI.');
+    }
+    return apiKey;
+};
+
 
 // Fix: Define and export LiveSession type as it's not exported from the library.
-export type LiveSession = Awaited<ReturnType<typeof ai.live.connect>>;
+const tempAi = new GoogleGenAI({ apiKey: "for-type-only" });
+export type LiveSession = Awaited<ReturnType<typeof tempAi.live.connect>>;
 
 
 // Helper to convert a file to a base64 string
@@ -28,6 +99,13 @@ export const fileToBase64 = (file: File, onProgress: (progress: number) => void)
         reader.onerror = (error) => reject(error);
     });
 };
+
+// Helper function to convert data URL to Blob
+export const dataUrlToBlob = async (dataUrl: string): Promise<Blob> => {
+    const res = await fetch(dataUrl);
+    return res.blob();
+};
+
 
 // --- Audio Decoding for TTS & Live API ---
 const decode = (base64: string) => {
@@ -61,7 +139,8 @@ const decodeAudioData = async (
 
 // --- Gemini API Calls ---
 
-export const generateImage = async (prompt: string, aspectRatio: string): Promise<string> => {
+export const generateImage = async (prompt: string, aspectRatio: string, negativePrompt?: string, temperature?: number): Promise<string> => {
+    const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateImages({
         model: 'imagen-4.0-generate-001',
         prompt,
@@ -69,6 +148,8 @@ export const generateImage = async (prompt: string, aspectRatio: string): Promis
             numberOfImages: 1,
             outputMimeType: 'image/jpeg',
             aspectRatio: aspectRatio as "1:1" | "3:4" | "4:3" | "9:16" | "16:9",
+            ...(negativePrompt && { negativePrompt }),
+            ...(temperature && { temperature }),
         },
     });
 
@@ -77,6 +158,7 @@ export const generateImage = async (prompt: string, aspectRatio: string): Promis
 };
 
 export const editImage = async (base64Image: string, mimeType: string, prompt: string): Promise<string> => {
+    const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: {
@@ -99,7 +181,8 @@ export const editImage = async (base64Image: string, mimeType: string, prompt: s
     throw new Error('No image generated');
 };
 
-export const analyzeContent = async (parts: (string | { inlineData: { mimeType: string; data: string } })[]): Promise<string> => {
+export const generateContent = async (parts: (string | { inlineData: { mimeType: string; data: string } })[]): Promise<string> => {
+    const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const formattedParts = parts.map(part => typeof part === 'string' ? { text: part } : part);
     const response: GenerateContentResponse = await ai.models.generateContent({
         model: 'gemini-2.5-pro',
@@ -112,12 +195,13 @@ export const generateVideo = async (
     prompt: string,
     image: { base64: string; mimeType: string } | null,
     aspectRatio: "16:9" | "9:16",
-    onStatusUpdate: (message: string) => void
-): Promise<string> => {
-    // Fix: Per guidelines, create a new instance for Veo models to get the latest API key.
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    onStatusUpdate: (message: string, progress: number) => void
+): Promise<{ objectUrl: string, blob: Blob }> => {
+    // FIX: A new instance should be created before each call, and API key handling is moved to the component.
+    const apiKey = getApiKey();
+    const ai = new GoogleGenAI({ apiKey: apiKey });
     
-    onStatusUpdate("Initializing video generation...");
+    onStatusUpdate("Initializing video generation...", 10);
     
     let operation = await ai.models.generateVideos({
         model: 'veo-3.1-fast-generate-preview',
@@ -130,33 +214,29 @@ export const generateVideo = async (
         }
     });
 
-    onStatusUpdate("Generation in progress... this may take a few minutes.");
+    onStatusUpdate("Generation in progress... this may take a few minutes.", 30);
     
     while (!operation.done) {
         await new Promise(resolve => setTimeout(resolve, 10000));
-        onStatusUpdate("Checking status...");
-        try {
-            operation = await ai.operations.getVideosOperation({ operation: operation });
-        } catch (error: any) {
-            if (error.message?.includes('Requested entity was not found')) {
-                 throw new Error('API key error. Please re-select your key.');
-            }
-            throw error;
-        }
+        onStatusUpdate("Checking status...", 60);
+        // FIX: Remove specific API key error handling. The component will handle it.
+        operation = await ai.operations.getVideosOperation({ operation: operation });
     }
     
-    onStatusUpdate("Finalizing video...");
+    onStatusUpdate("Finalizing video...", 80);
     const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
     if (!downloadLink) throw new Error("Video generation failed to produce a link.");
     
-    onStatusUpdate("Downloading video data...");
-    const videoResponse = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    onStatusUpdate("Downloading video data...", 95);
+    const videoResponse = await fetch(`${downloadLink}&key=${apiKey}`);
     const videoBlob = await videoResponse.blob();
+    onStatusUpdate("Complete.", 100);
     
-    return URL.createObjectURL(videoBlob);
+    return { objectUrl: URL.createObjectURL(videoBlob), blob: videoBlob };
 };
 
-export const createChatSession = (model: string, systemInstruction: string): Chat => {
+export const createChatSession = (model: string, systemInstruction: string, tools?: {functionDeclarations: FunctionDeclaration[]}[], ): Chat => {
+    const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const modelConfig = model === 'gemini-2.5-pro'
         ? { thinkingConfig: { thinkingBudget: 32768 } }
         : {};
@@ -166,11 +246,13 @@ export const createChatSession = (model: string, systemInstruction: string): Cha
         config: {
             systemInstruction,
             ...modelConfig,
+            ...(tools && { tools })
         },
     });
 };
 
 export const generateSpeech = async (text: string, voiceName: string): Promise<AudioBuffer> => {
+    const ai = new GoogleGenAI({ apiKey: getApiKey() });
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text: `Say: ${text}` }] }],
@@ -194,7 +276,10 @@ export const startConversationSession = (
     onTranscriptionUpdate: (text: string, isFinal: boolean, isModel: boolean) => void,
     onAudioOutput: (audioBuffer: AudioBuffer) => void,
     onInterrupted: () => void,
+    onToolCall: (name: string, args: any, id: string) => void,
+    tools?: {functionDeclarations: FunctionDeclaration[]}[],
 ): Promise<LiveSession> => {
+    const ai = new GoogleGenAI({ apiKey: getApiKey() });
     let currentInputTranscription = '';
     let currentOutputTranscription = '';
     const outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
@@ -204,6 +289,11 @@ export const startConversationSession = (
         callbacks: {
             onopen: () => console.log('Conversation session opened.'),
             onmessage: async (message) => {
+                 if (message.toolCall) {
+                    for (const fc of message.toolCall.functionCalls) {
+                        onToolCall(fc.name, fc.args, fc.id);
+                    }
+                }
                 // Handle transcriptions
                 if (message.serverContent?.inputTranscription) {
                     const text = message.serverContent.inputTranscription.text;
@@ -241,7 +331,8 @@ export const startConversationSession = (
             responseModalities: [Modality.AUDIO],
             inputAudioTranscription: {},
             outputAudioTranscription: {},
-            systemInstruction: "You are a friendly and helpful voice assistant. Keep your responses concise."
+            systemInstruction: "You are a friendly and helpful voice assistant. Keep your responses concise. When a tool is available, use it.",
+            ...(tools && { tools })
         }
     });
 };
