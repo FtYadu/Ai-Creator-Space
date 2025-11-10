@@ -33,6 +33,8 @@ const PlusCircleIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns
 const BellIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M12 2.25c-2.429 0-4.82-1.33-7.297-3.988.226 2.384.98 4.673 2.185 6.673C10.03 10.233 12 12.29 12 15.625v.375a2.25 2.25 0 0 1-2.25 2.25H9a2.25 2.25 0 0 1-2.25-2.25v-.375c0-3.336-1.97-5.392-5.065-10.688 1.205-1.999 1.96-4.288 2.185-6.672C.18 3.07 0 5.994 0 9c0 5.523 4.477 10 10 10 1.344 0 2.63-.263 3.824-.75A8.22 8.22 0 0 1 12 19.5a8.22 8.22 0 0 1-1.824-.75.75.75 0 0 1-.368-1.045A.75.75 0 0 1 10.852 17a6.702 6.702 0 0 0 2.298.432 6.75 6.75 0 0 0 6.75-6.75c0-3.006-2.023-5.59-4.9-6.333a.75.75 0 0 1-.582-1.342 13.59 13.59 0 0 0 3.83-3.07C21 5.994 21 3.07 18.703-1.738 16.82-1.33 14.429 2.25 12 2.25Z" clipRule="evenodd" /></svg>;
 const TrashIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clipRule="evenodd" /></svg>;
 const PencilIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" /><path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" /></svg>;
+const MagnifyingGlassIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" /></svg>;
+const FunnelIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M3.792 2.938A49.069 49.069 0 0 1 12 2.25c2.797 0 5.54.236 8.209.688a1.857 1.857 0 0 1 1.541 1.836v1.044a3 3 0 0 1-.879 2.121l-6.182 6.182a1.5 1.5 0 0 0-.439 1.061v2.927a3 3 0 0 1-1.658 2.684l-1.757.878A.75.75 0 0 1 9.75 21v-5.818a1.5 1.5 0 0 0-.44-1.06L3.13 7.938a3 3 0 0 1-.879-2.121V4.774c0-.897.64-1.683 1.542-1.836Z" clipRule="evenodd" /></svg>;
 
 const ALL_TOOLS = [
     { id: Tool.PROJECTS, name: 'Projects', Icon: FolderIcon, description: 'Organize your work and view your creations.' },
@@ -1087,6 +1089,13 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
     const [editingProjectName, setEditingProjectName] = useState("");
     const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'project' | 'media', id: string, name: string } | null>(null);
 
+    // Search & Filter state
+    const [projectSearch, setProjectSearch] = useState("");
+    const [mediaSearch, setMediaSearch] = useState("");
+    const [mediaTypeFilter, setMediaTypeFilter] = useState<'all' | 'image' | 'video' | 'chat'>('all');
+    const [showFilters, setShowFilters] = useState(false);
+    const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
+
     useEffect(() => {
         if (!activeProjectId && projects.length > 0) {
             setActiveProjectId(projects[0].id);
@@ -1141,15 +1150,54 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
         }
     };
 
-    const activeProjectMedia = mediaItems.filter(m => m.projectId === activeProjectId);
+    // Filter projects by search
+    const filteredProjects = projects.filter(p =>
+        p.name.toLowerCase().includes(projectSearch.toLowerCase())
+    );
+
+    // Filter media by multiple criteria
+    const filterMediaByDate = (item: MediaItem) => {
+        if (dateFilter === 'all') return true;
+        const itemDate = new Date(item.createdAt);
+        const now = new Date();
+        const dayInMs = 24 * 60 * 60 * 1000;
+
+        if (dateFilter === 'today') {
+            return now.getTime() - itemDate.getTime() < dayInMs;
+        } else if (dateFilter === 'week') {
+            return now.getTime() - itemDate.getTime() < 7 * dayInMs;
+        } else if (dateFilter === 'month') {
+            return now.getTime() - itemDate.getTime() < 30 * dayInMs;
+        }
+        return true;
+    };
+
+    const activeProjectMedia = mediaItems
+        .filter(m => m.projectId === activeProjectId)
+        .filter(m => mediaTypeFilter === 'all' || m.type === mediaTypeFilter)
+        .filter(m => !mediaSearch || (m.prompt && m.prompt.toLowerCase().includes(mediaSearch.toLowerCase())))
+        .filter(filterMediaByDate);
 
     return (
         <>
             <div className="flex h-full">
                 <div className="w-full md:w-1/3 border-r border-black/10 dark:border-white/10 p-4 space-y-2 flex flex-col">
                     <h3 className="font-bold text-lg mb-2">Projects</h3>
+
+                    {/* Project Search */}
+                    <div className="relative">
+                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                            type="text"
+                            value={projectSearch}
+                            onChange={e => setProjectSearch(e.target.value)}
+                            placeholder="Search projects..."
+                            className="w-full pl-10 pr-3 py-2 bg-black/5 dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                        />
+                    </div>
+
                     <div className="flex-grow overflow-y-auto space-y-2">
-                        {projects.map(p => (
+                        {filteredProjects.map(p => (
                             <div key={p.id} className={`group relative rounded-lg transition-colors ${activeProjectId === p.id ? 'bg-purple-500/30' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}>
                                 {editingProjectId === p.id ? (
                                     <div className="flex gap-1 p-2">
@@ -1197,8 +1245,101 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
                         <Button onClick={handleAddProject} className="p-2 h-10 w-10 !px-0 flex-shrink-0"><PlusCircleIcon className="w-6 h-6"/></Button>
                     </div>
                 </div>
-                <div className="w-full md:w-2/3 p-4 overflow-y-auto">
-                    <h3 className="font-bold text-lg mb-4">{projects.find(p=>p.id===activeProjectId)?.name || 'Select a Project'}</h3>
+                <div className="w-full md:w-2/3 p-4 overflow-y-auto flex flex-col">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-bold text-lg">{projects.find(p=>p.id===activeProjectId)?.name || 'Select a Project'}</h3>
+                        {activeProjectId && (
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                aria-label="Toggle filters"
+                            >
+                                <FunnelIcon className="w-5 h-5" />
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Media Search & Filters */}
+                    {activeProjectId && (
+                        <div className="space-y-3 mb-4">
+                            {/* Search Bar */}
+                            <div className="relative">
+                                <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    value={mediaSearch}
+                                    onChange={e => setMediaSearch(e.target.value)}
+                                    placeholder="Search media by prompt..."
+                                    className="w-full pl-10 pr-3 py-2 bg-black/5 dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
+                                />
+                            </div>
+
+                            {/* Filters Panel */}
+                            {showFilters && (
+                                <div className="p-4 bg-black/5 dark:bg-white/5 rounded-lg space-y-3">
+                                    {/* Type Filter */}
+                                    <div>
+                                        <label className="text-sm font-medium mb-2 block">Media Type</label>
+                                        <div className="flex gap-2">
+                                            {(['all', 'image', 'video', 'chat'] as const).map(type => (
+                                                <button
+                                                    key={type}
+                                                    onClick={() => setMediaTypeFilter(type)}
+                                                    className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                                                        mediaTypeFilter === type
+                                                            ? 'bg-purple-500 text-white'
+                                                            : 'bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20'
+                                                    }`}
+                                                >
+                                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Date Filter */}
+                                    <div>
+                                        <label className="text-sm font-medium mb-2 block">Date Range</label>
+                                        <div className="flex gap-2">
+                                            {(['all', 'today', 'week', 'month'] as const).map(range => (
+                                                <button
+                                                    key={range}
+                                                    onClick={() => setDateFilter(range)}
+                                                    className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                                                        dateFilter === range
+                                                            ? 'bg-purple-500 text-white'
+                                                            : 'bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20'
+                                                    }`}
+                                                >
+                                                    {range === 'all' ? 'All Time' : range.charAt(0).toUpperCase() + range.slice(1)}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Active Filters Count */}
+                                    {(mediaTypeFilter !== 'all' || dateFilter !== 'all' || mediaSearch) && (
+                                        <div className="flex items-center justify-between pt-2 border-t border-black/10 dark:border-white/10">
+                                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                                                {activeProjectMedia.length} result{activeProjectMedia.length !== 1 ? 's' : ''}
+                                            </span>
+                                            <button
+                                                onClick={() => {
+                                                    setMediaTypeFilter('all');
+                                                    setDateFilter('all');
+                                                    setMediaSearch('');
+                                                }}
+                                                className="text-sm text-purple-500 hover:underline"
+                                            >
+                                                Clear filters
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {activeProjectId ? (
                         activeProjectMedia.length > 0 ? (
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
