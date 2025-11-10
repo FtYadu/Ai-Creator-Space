@@ -31,6 +31,8 @@ const CloudArrowDownIcon: FC<{ className?: string }> = ({ className }) => <svg x
 const WrenchScrewdriverIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M12 6.75a5.25 5.25 0 0 1 5.25 5.25c0 2.12-1.29 3.94-3.141 4.795a.75.75 0 0 1-1.082-.544l-.24-1.202a3.75 3.75 0 0 0-5.152-2.148.75.75 0 0 1-.795-1.255 5.25 5.25 0 0 1 4.39-4.505c.205-.03.414-.044.624-.044Z" clipRule="evenodd" /><path d="m4.75 1.5.175.044a8.25 8.25 0 0 0 1.255.471l.248.093a.75.75 0 0 1 .496.865l-.33 1.652a.75.75 0 0 1-1.423-.284l.23-1.148a6.752 6.752 0 0 1-1.026-.384l-.248-.093a.75.75 0 0 1-.496-.865l.33-1.652a.75.75 0 0 1 .865-.496A.753.753 0 0 1 4.75 1.5Zm4.516 3.24a.75.75 0 0 1 .496.865l-.33 1.652a.75.75 0 0 1-1.423-.284l.23-1.148a6.752 6.752 0 0 1-1.026-.384l-.248-.093a.75.75 0 0 1-.496-.865l.33-1.652a.75.75 0 0 1 1.423.284l-.23 1.148c.36.136.707.29 1.04.458l.248.093a.75.75 0 0 1 .496.865ZM12 1.5a.75.75 0 0 1 .744.62c.162.612.285 1.233.366 1.858a.75.75 0 0 1-1.488.144c-.078-.59-.193-1.173-.346-1.74a.75.75 0 0 1 .724-.882Z" /><path fillRule="evenodd" d="M4.5 22.5a.75.75 0 0 1-.744-.62c-.162-.612-.285-1.233-.366-1.858a.75.75 0 0 1 1.488-.144c.078.59.193 1.173.346 1.74a.75.75 0 0 1-.724.882ZM11.66 18.265a.75.75 0 0 1 .53-1.282l1.246-.311a6.75 6.75 0 0 1 3.568-3.568l.311-1.246a.75.75 0 0 1 1.282-.53l1.589 1.589a.75.75 0 0 1-.53 1.282l-1.246.311a6.75 6.75 0 0 1-3.568 3.568l-.311 1.246a.75.75 0 0 1-1.282.53l-1.589-1.589Z" clipRule="evenodd" /></svg>;
 const PlusCircleIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 9a.75.75 0 0 0-1.5 0v2.25H9a.75.75 0 0 0 0 1.5h2.25V15a.75.75 0 0 0 1.5 0v-2.25H15a.75.75 0 0 0 0-1.5h-2.25V9Z" clipRule="evenodd" /></svg>;
 const BellIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M12 2.25c-2.429 0-4.82-1.33-7.297-3.988.226 2.384.98 4.673 2.185 6.673C10.03 10.233 12 12.29 12 15.625v.375a2.25 2.25 0 0 1-2.25 2.25H9a2.25 2.25 0 0 1-2.25-2.25v-.375c0-3.336-1.97-5.392-5.065-10.688 1.205-1.999 1.96-4.288 2.185-6.672C.18 3.07 0 5.994 0 9c0 5.523 4.477 10 10 10 1.344 0 2.63-.263 3.824-.75A8.22 8.22 0 0 1 12 19.5a8.22 8.22 0 0 1-1.824-.75.75.75 0 0 1-.368-1.045A.75.75 0 0 1 10.852 17a6.702 6.702 0 0 0 2.298.432 6.75 6.75 0 0 0 6.75-6.75c0-3.006-2.023-5.59-4.9-6.333a.75.75 0 0 1-.582-1.342 13.59 13.59 0 0 0 3.83-3.07C21 5.994 21 3.07 18.703-1.738 16.82-1.33 14.429 2.25 12 2.25Z" clipRule="evenodd" /></svg>;
+const TrashIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z" clipRule="evenodd" /></svg>;
+const PencilIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" /><path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" /></svg>;
 
 const ALL_TOOLS = [
     { id: Tool.PROJECTS, name: 'Projects', Icon: FolderIcon, description: 'Organize your work and view your creations.' },
@@ -86,6 +88,51 @@ const useFocusTrap = (ref: React.RefObject<HTMLElement>, isOpen: boolean) => {
 };
 
 
+// --- ERROR BOUNDARY ---
+
+interface ErrorBoundaryState {
+    hasError: boolean;
+    error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, ErrorBoundaryState> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+        console.error('Error caught by boundary:', error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="flex flex-col items-center justify-center p-8 text-center">
+                    <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 rounded-lg p-6 max-w-lg">
+                        <h2 className="text-xl font-bold text-red-800 dark:text-red-300 mb-3">Something went wrong</h2>
+                        <p className="text-red-700 dark:text-red-400 mb-4">
+                            {this.state.error?.message || 'An unexpected error occurred'}
+                        </p>
+                        <button
+                            onClick={() => this.setState({ hasError: false, error: null })}
+                            className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        return this.props.children;
+    }
+}
+
 // --- SHARED COMPONENTS ---
 
 const GlassContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ children, className, ...rest }, ref) => (
@@ -93,6 +140,47 @@ const GlassContainer = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTM
         {children}
     </div>
 ));
+
+const ConfirmDialog: FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+}> = ({ isOpen, onClose, onConfirm, title, message, confirmText = 'Delete', cancelText = 'Cancel' }) => {
+    const dialogRef = useRef<HTMLDivElement>(null);
+    useFocusTrap(dialogRef, isOpen);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        if (isOpen) document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <GlassContainer ref={dialogRef} className="w-full max-w-md p-6 m-4">
+                <h3 className="text-xl font-bold mb-3">{title}</h3>
+                <p className="text-gray-700 dark:text-gray-300 mb-6">{message}</p>
+                <div className="flex gap-3 justify-end">
+                    <Button onClick={onClose} variant="secondary">{cancelText}</Button>
+                    <button
+                        onClick={() => { onConfirm(); onClose(); }}
+                        className="px-6 py-2 font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-md transition-all duration-300"
+                    >
+                        {confirmText}
+                    </button>
+                </div>
+            </GlassContainer>
+        </div>
+    );
+};
 
 const Loader: FC<{ message: string }> = ({ message }) => (
     <div className="flex flex-col items-center justify-center space-y-4 p-8">
@@ -182,6 +270,9 @@ interface ToolContentProps {
     projects: Project[];
     mediaItems: MediaItem[];
     addProject: (name: string) => void;
+    deleteProject: (id: string) => void;
+    renameProject: (id: string, newName: string) => void;
+    deleteMediaItem: (id: string) => void;
 }
 
 const ImageGenerator: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
@@ -868,9 +959,9 @@ const ToolView: FC<{ toolId: Tool, onBack: () => void } & ToolContentProps> = ({
                         <h2 className="text-2xl font-bold">{tool.name}</h2>
                     </div>
                 </div>
-                {!isChat && renderTool()}
+                {!isChat && <ErrorBoundary>{renderTool()}</ErrorBoundary>}
             </div>
-             {isChat && <div className="flex-1 min-h-0">{renderTool()}</div>}
+             {isChat && <div className="flex-1 min-h-0"><ErrorBoundary>{renderTool()}</ErrorBoundary></div>}
         </GlassContainer>
     );
 };
@@ -989,9 +1080,12 @@ const MediaDisplay: FC<{item: MediaItem}> = ({ item }) => {
     return <div className="w-full h-full bg-black/10 dark:bg-white/10 animate-pulse"></div>;
 }
 
-const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProject }) => {
+const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProject, deleteProject, renameProject, deleteMediaItem, addNotification }) => {
     const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
     const [newProjectName, setNewProjectName] = useState("");
+    const [editingProjectId, setEditingProjectId] = useState<string | null>(null);
+    const [editingProjectName, setEditingProjectName] = useState("");
+    const [deleteConfirm, setDeleteConfirm] = useState<{ type: 'project' | 'media', id: string, name: string } | null>(null);
 
     useEffect(() => {
         if (!activeProjectId && projects.length > 0) {
@@ -1005,40 +1099,138 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
             setNewProjectName("");
         }
     }
-    
+
+    const handleStartRename = (project: Project) => {
+        setEditingProjectId(project.id);
+        setEditingProjectName(project.name);
+    };
+
+    const handleSaveRename = () => {
+        if (editingProjectId && editingProjectName.trim()) {
+            renameProject(editingProjectId, editingProjectName.trim());
+            setEditingProjectId(null);
+            setEditingProjectName("");
+            addNotification('Project renamed successfully');
+        }
+    };
+
+    const handleCancelRename = () => {
+        setEditingProjectId(null);
+        setEditingProjectName("");
+    };
+
+    const handleDeleteProject = (projectId: string) => {
+        const project = projects.find(p => p.id === projectId);
+        if (project) {
+            setDeleteConfirm({ type: 'project', id: projectId, name: project.name });
+        }
+    };
+
+    const confirmDelete = () => {
+        if (deleteConfirm) {
+            if (deleteConfirm.type === 'project') {
+                deleteProject(deleteConfirm.id);
+                if (activeProjectId === deleteConfirm.id) {
+                    setActiveProjectId(projects.find(p => p.id !== deleteConfirm.id)?.id || null);
+                }
+                addNotification('Project deleted successfully');
+            } else {
+                deleteMediaItem(deleteConfirm.id);
+                addNotification('Media deleted successfully');
+            }
+        }
+    };
+
     const activeProjectMedia = mediaItems.filter(m => m.projectId === activeProjectId);
 
     return (
-        <div className="flex h-full">
-            <div className="w-full md:w-1/3 border-r border-black/10 dark:border-white/10 p-4 space-y-2 flex flex-col">
-                <h3 className="font-bold text-lg mb-2">Projects</h3>
-                <div className="flex-grow overflow-y-auto space-y-2">
-                    {projects.map(p => <button key={p.id} onClick={() => setActiveProjectId(p.id)} className={`w-full text-left p-2 rounded-lg transition-colors ${activeProjectId === p.id ? 'bg-purple-500/30' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}>{p.name}</button>)}
+        <>
+            <div className="flex h-full">
+                <div className="w-full md:w-1/3 border-r border-black/10 dark:border-white/10 p-4 space-y-2 flex flex-col">
+                    <h3 className="font-bold text-lg mb-2">Projects</h3>
+                    <div className="flex-grow overflow-y-auto space-y-2">
+                        {projects.map(p => (
+                            <div key={p.id} className={`group relative rounded-lg transition-colors ${activeProjectId === p.id ? 'bg-purple-500/30' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                                {editingProjectId === p.id ? (
+                                    <div className="flex gap-1 p-2">
+                                        <input
+                                            value={editingProjectName}
+                                            onChange={e => setEditingProjectName(e.target.value)}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') handleSaveRename();
+                                                if (e.key === 'Escape') handleCancelRename();
+                                            }}
+                                            className="flex-grow p-1 bg-white dark:bg-gray-800 rounded text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                            autoFocus
+                                        />
+                                        <button onClick={handleSaveRename} className="text-green-600 hover:text-green-700 p-1">✓</button>
+                                        <button onClick={handleCancelRename} className="text-red-600 hover:text-red-700 p-1">✕</button>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center justify-between p-2">
+                                        <button onClick={() => setActiveProjectId(p.id)} className="flex-grow text-left">
+                                            {p.name}
+                                        </button>
+                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <button
+                                                onClick={() => handleStartRename(p)}
+                                                className="p-1 hover:bg-purple-500/20 rounded"
+                                                aria-label="Rename project"
+                                            >
+                                                <PencilIcon className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteProject(p.id)}
+                                                className="p-1 hover:bg-red-500/20 rounded"
+                                                aria-label="Delete project"
+                                            >
+                                                <TrashIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                        <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} onKeyDown={e => {if(e.key === 'Enter') handleAddProject()}} placeholder="New Project Name" className="flex-grow p-2 bg-black/5 dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"/>
+                        <Button onClick={handleAddProject} className="p-2 h-10 w-10 !px-0 flex-shrink-0"><PlusCircleIcon className="w-6 h-6"/></Button>
+                    </div>
                 </div>
-                <div className="flex gap-2 mt-2">
-                    <input value={newProjectName} onChange={e => setNewProjectName(e.target.value)} onKeyDown={e => {if(e.key === 'Enter') handleAddProject()}} placeholder="New Project Name" className="flex-grow p-2 bg-black/5 dark:bg-white/5 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"/>
-                    <Button onClick={handleAddProject} className="p-2 h-10 w-10 !px-0 flex-shrink-0"><PlusCircleIcon className="w-6 h-6"/></Button>
-                </div>
-            </div>
-            <div className="w-full md:w-2/3 p-4 overflow-y-auto">
-                <h3 className="font-bold text-lg mb-4">{projects.find(p=>p.id===activeProjectId)?.name || 'Select a Project'}</h3>
-                {activeProjectId ? (
-                    activeProjectMedia.length > 0 ? (
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                            {activeProjectMedia.map(item => (
-                                <div key={item.id} className="aspect-square rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 shadow-inner">
-                                    <MediaDisplay item={item} />
-                                </div>
-                            ))}
-                        </div>
+                <div className="w-full md:w-2/3 p-4 overflow-y-auto">
+                    <h3 className="font-bold text-lg mb-4">{projects.find(p=>p.id===activeProjectId)?.name || 'Select a Project'}</h3>
+                    {activeProjectId ? (
+                        activeProjectMedia.length > 0 ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {activeProjectMedia.map(item => (
+                                    <div key={item.id} className="group relative aspect-square rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 shadow-inner">
+                                        <MediaDisplay item={item} />
+                                        <button
+                                            onClick={() => setDeleteConfirm({ type: 'media', id: item.id, name: item.prompt || 'this item' })}
+                                            className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-700"
+                                            aria-label="Delete media"
+                                        >
+                                            <TrashIcon className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 dark:text-gray-400 mt-4">No media in this project yet. Go create something!</p>
+                        )
                     ) : (
-                        <p className="text-gray-500 dark:text-gray-400 mt-4">No media in this project yet. Go create something!</p>
-                    )
-                ) : (
-                     <p className="text-gray-500 dark:text-gray-400 mt-4">Create or select a project to view media.</p>
-                )}
+                         <p className="text-gray-500 dark:text-gray-400 mt-4">Create or select a project to view media.</p>
+                    )}
+                </div>
             </div>
-        </div>
+            <ConfirmDialog
+                isOpen={deleteConfirm !== null}
+                onClose={() => setDeleteConfirm(null)}
+                onConfirm={confirmDelete}
+                title={`Delete ${deleteConfirm?.type === 'project' ? 'Project' : 'Media'}?`}
+                message={`Are you sure you want to delete "${deleteConfirm?.name}"? This action cannot be undone.`}
+            />
+        </>
     )
 };
 
@@ -1188,10 +1380,35 @@ const App: React.FC = () => {
             projectId,
             createdAt: new Date().toISOString(),
         } as MediaItem;
-        
+
         await geminiService.db.add('mediaItems', newItem);
         setMediaItems(prev => [...prev, newItem]);
         addNotification(`${itemData.type.charAt(0).toUpperCase() + itemData.type.slice(1)} saved to project.`);
+    };
+
+    const deleteProject = async (id: string) => {
+        await geminiService.db.delete('projects', id);
+        setProjects(prev => prev.filter(p => p.id !== id));
+        // Also delete all media items associated with this project
+        const mediaToDelete = mediaItems.filter(m => m.projectId === id);
+        for (const media of mediaToDelete) {
+            await geminiService.db.delete('mediaItems', media.id);
+        }
+        setMediaItems(prev => prev.filter(m => m.projectId !== id));
+    };
+
+    const renameProject = async (id: string, newName: string) => {
+        const project = projects.find(p => p.id === id);
+        if (project) {
+            const updatedProject = { ...project, name: newName };
+            await geminiService.db.put('projects', updatedProject);
+            setProjects(prev => prev.map(p => p.id === id ? updatedProject : p));
+        }
+    };
+
+    const deleteMediaItem = async (id: string) => {
+        await geminiService.db.delete('mediaItems', id);
+        setMediaItems(prev => prev.filter(m => m.id !== id));
     };
 
     const [draggedTool, setDraggedTool] = useState<Tool | null>(null);
@@ -1260,7 +1477,7 @@ const App: React.FC = () => {
 
                 <main className="flex-1 min-w-0">
                     {activeTool ? (
-                        <ToolView toolId={activeTool} onBack={() => setActiveTool(null)} addNotification={addNotification} saveMediaItem={saveMediaItem} projects={projects} mediaItems={mediaItems} addProject={addProject}/>
+                        <ToolView toolId={activeTool} onBack={() => setActiveTool(null)} addNotification={addNotification} saveMediaItem={saveMediaItem} projects={projects} mediaItems={mediaItems} addProject={addProject} deleteProject={deleteProject} renameProject={renameProject} deleteMediaItem={deleteMediaItem}/>
                     ) : (
                         <div className="h-full">
                              <GlassContainer className="p-6 h-full overflow-y-auto">

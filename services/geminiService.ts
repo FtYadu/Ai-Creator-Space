@@ -62,6 +62,27 @@ export const db = {
             request.onsuccess = () => resolve();
         });
     },
+    delete: async (storeName: string, key: string): Promise<void> => {
+        const db = await getDb();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(storeName, 'readwrite');
+            const store = transaction.objectStore(storeName);
+            const request = store.delete(key);
+            request.onerror = () => reject(new Error(`Failed to delete from ${storeName}`));
+            request.onsuccess = () => resolve();
+        });
+    },
+    getByIndex: async <T>(storeName: string, indexName: string, value: string): Promise<T[]> => {
+        const db = await getDb();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(storeName, 'readonly');
+            const store = transaction.objectStore(storeName);
+            const index = store.index(indexName);
+            const request = index.getAll(value);
+            request.onerror = () => reject(new Error(`Failed to get from ${storeName} by index ${indexName}`));
+            request.onsuccess = () => resolve(request.result);
+        });
+    },
 };
 
 // --- FUNCTION CALLING SETUP ---

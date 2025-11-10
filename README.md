@@ -2,19 +2,142 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# AI Creator Space
 
-This contains everything you need to run your app locally.
+A comprehensive suite of AI-powered tools for content creation, built with React and Google's Gemini AI models.
 
-View your app in AI Studio: https://ai.studio/apps/drive/11USIl3rTpVXvA4OyXAMN0GeBmy2QsQ2s
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB.svg)](https://reactjs.org/)
 
-## Run Locally
+## Features
 
-**Prerequisites:**  Node.js
+### 🎨 Image Tools
+- **Generate Images** - Create stunning visuals from text prompts using Imagen 4.0
+- **Edit Images** - Modify images with intuitive text commands
+- **Analyze Images** - Get detailed AI-powered insights and analysis
 
+### 🎬 Video Tools
+- **Generate Videos** - Bring ideas to life with text-to-video using Veo 3.1
+- **Analyze Videos** - Extract key information and understand video content
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### 🎙️ Voice & Audio
+- **Voice Assistant** - Real-time voice conversations with Gemini Live
+- **Text-to-Speech** - Generate natural-sounding speech from any text
+
+### 💬 Communication
+- **Chat Assistant** - Multi-turn conversations with AI assistance
+- **Function Calling** - Extensible tool system for custom capabilities
+
+### 📁 Project Management
+- **Organize Work** - Manage creations by project
+- **Media Library** - View and manage all generated content
+- **CRUD Operations** - Create, rename, and delete projects
+
+## Tech Stack
+
+- **Frontend**: React 19.2, TypeScript 5.8, Vite 6.2
+- **Styling**: Tailwind CSS (glassmorphism design)
+- **AI/ML**: Google Gemini API (@google/genai v1.27.0)
+- **Storage**: IndexedDB, localStorage
+- **Testing**: Vitest, React Testing Library
+- **Code Quality**: ESLint, Prettier, TypeScript strict mode
+
+## Quick Start
+
+### Prerequisites
+- Node.js v18 or higher
+- npm or yarn
+- A Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd Ai-Creator-Space
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   ```
+   Edit `.env.local` and add your Gemini API key:
+   ```
+   GEMINI_API_KEY=your_api_key_here
+   ```
+
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**
+   Navigate to `http://localhost:3000`
+
+## Available Scripts
+
+```bash
+# Development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+
+# Testing
+npm test             # Run tests
+npm run test:ui      # Run tests with UI
+npm run test:coverage # Run tests with coverage
+
+# Code Quality
+npm run lint         # Run ESLint
+npm run lint:fix     # Fix ESLint issues
+npm run format       # Format code with Prettier
+npm run format:check # Check code formatting
+npm run type-check   # Run TypeScript type checking
+```
+
+## Project Structure
+
+```
+Ai-Creator-Space/
+├── App.tsx                    # Main application component
+├── index.tsx                  # React entry point
+├── types.ts                   # TypeScript type definitions
+├── services/
+│   └── geminiService.ts       # Gemini API integration
+├── tests/                     # Test files
+├── .env.example              # Environment variables template
+├── package.json              # Dependencies and scripts
+├── CONTRIBUTING.md           # Contribution guidelines
+├── ARCHITECTURE.md           # Architecture documentation
+└── README.md                 # This file
+```
+
+## View in AI Studio
+
+This app is available in Google AI Studio:
+[View App](https://ai.studio/apps/drive/11USIl3rTpVXvA4OyXAMN0GeBmy2QsQ2s)
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+
+## Support
+
+For questions, issues, or feature requests:
+- Open an issue on GitHub
+- Check the [ARCHITECTURE.md](./ARCHITECTURE.md) for technical details
+- Review [CONTRIBUTING.md](./CONTRIBUTING.md) for development help
+
+---
+
+Made with ❤️ using React and Gemini AI
