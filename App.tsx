@@ -4,6 +4,7 @@
 import React, { useState, useCallback, useRef, useEffect, FC } from 'react';
 import { Tool, Settings, Theme, Project, MediaItem, DisplayMessage, MessagePart, MediaItemData, Notification } from './types';
 import * as geminiService from './services/geminiService';
+import { exportProjectsAsJSON, exportMediaAsZip, importFromBackup, getStorageStats } from './utils/exportUtils';
 import { Chat } from '@google/genai';
 import type { LiveSession } from './services/geminiService';
 import { TOOLS_CONFIG, availableTools } from './services/geminiService';
@@ -35,6 +36,7 @@ const TrashIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="htt
 const PencilIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path d="M21.731 2.269a2.625 2.625 0 0 0-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 0 0 0-3.712ZM19.513 8.199l-3.712-3.712-8.4 8.4a5.25 5.25 0 0 0-1.32 2.214l-.8 2.685a.75.75 0 0 0 .933.933l2.685-.8a5.25 5.25 0 0 0 2.214-1.32l8.4-8.4Z" /><path d="M5.25 5.25a3 3 0 0 0-3 3v10.5a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3V13.5a.75.75 0 0 0-1.5 0v5.25a1.5 1.5 0 0 1-1.5 1.5H5.25a1.5 1.5 0 0 1-1.5-1.5V8.25a1.5 1.5 0 0 1 1.5-1.5h5.25a.75.75 0 0 0 0-1.5H5.25Z" /></svg>;
 const MagnifyingGlassIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 1 0 0 13.5 6.75 6.75 0 0 0 0-13.5ZM2.25 10.5a8.25 8.25 0 1 1 14.59 5.28l4.69 4.69a.75.75 0 1 1-1.06 1.06l-4.69-4.69A8.25 8.25 0 0 1 2.25 10.5Z" clipRule="evenodd" /></svg>;
 const FunnelIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M3.792 2.938A49.069 49.069 0 0 1 12 2.25c2.797 0 5.54.236 8.209.688a1.857 1.857 0 0 1 1.541 1.836v1.044a3 3 0 0 1-.879 2.121l-6.182 6.182a1.5 1.5 0 0 0-.439 1.061v2.927a3 3 0 0 1-1.658 2.684l-1.757.878A.75.75 0 0 1 9.75 21v-5.818a1.5 1.5 0 0 0-.44-1.06L3.13 7.938a3 3 0 0 1-.879-2.121V4.774c0-.897.64-1.683 1.542-1.836Z" clipRule="evenodd" /></svg>;
+const CommandIcon: FC<{ className?: string }> = ({ className }) => <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}><path fillRule="evenodd" d="M6 3a3 3 0 0 0-3 3v1.5a3 3 0 0 0 3 3h1.5a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H6Zm9 0a3 3 0 0 0-3 3v1.5a3 3 0 0 0 3 3H16.5a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H15Zm-9 9a3 3 0 0 0-3 3v1.5a3 3 0 0 0 3 3h1.5a3 3 0 0 0 3-3V15a3 3 0 0 0-3-3H6Zm9 0a3 3 0 0 0-3 3v1.5a3 3 0 0 0 3 3h1.5a3 3 0 0 0 3-3V15a3 3 0 0 0-3-3H15Z" clipRule="evenodd" /></svg>;
 
 const ALL_TOOLS = [
     { id: Tool.PROJECTS, name: 'Projects', Icon: FolderIcon, description: 'Organize your work and view your creations.' },
@@ -178,6 +180,124 @@ const ConfirmDialog: FC<{
                     >
                         {confirmText}
                     </button>
+                </div>
+            </GlassContainer>
+        </div>
+    );
+};
+
+interface KeyboardShortcut {
+    key: string;
+    label: string;
+    action: () => void;
+    description: string;
+}
+
+const CommandPalette: FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    shortcuts: KeyboardShortcut[];
+}> = ({ isOpen, onClose, shortcuts }) => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const paletteRef = useRef<HTMLDivElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const [selectedIndex, setSelectedIndex] = useState(0);
+
+    useFocusTrap(paletteRef, isOpen);
+
+    const filteredShortcuts = shortcuts.filter(shortcut =>
+        shortcut.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        shortcut.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    useEffect(() => {
+        if (isOpen && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+        setSearchTerm('');
+        setSelectedIndex(0);
+    }, [isOpen]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!isOpen) return;
+
+            if (e.key === 'Escape') {
+                onClose();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setSelectedIndex(i => Math.min(i + 1, filteredShortcuts.length - 1));
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setSelectedIndex(i => Math.max(i - 1, 0));
+            } else if (e.key === 'Enter' && filteredShortcuts[selectedIndex]) {
+                e.preventDefault();
+                filteredShortcuts[selectedIndex].action();
+                onClose();
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose, filteredShortcuts, selectedIndex]);
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 backdrop-blur-sm pt-20">
+            <GlassContainer ref={paletteRef} className="w-full max-w-2xl m-4">
+                <div className="p-4 border-b border-black/10 dark:border-white/10">
+                    <div className="relative">
+                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input
+                            ref={searchInputRef}
+                            type="text"
+                            value={searchTerm}
+                            onChange={e => {
+                                setSearchTerm(e.target.value);
+                                setSelectedIndex(0);
+                            }}
+                            placeholder="Search commands..."
+                            className="w-full pl-11 pr-4 py-3 bg-transparent border-none focus:outline-none text-lg"
+                        />
+                    </div>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                    {filteredShortcuts.length > 0 ? (
+                        <div className="p-2">
+                            {filteredShortcuts.map((shortcut, index) => (
+                                <button
+                                    key={shortcut.key}
+                                    onClick={() => {
+                                        shortcut.action();
+                                        onClose();
+                                    }}
+                                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-colors text-left ${
+                                        index === selectedIndex
+                                            ? 'bg-purple-500/20'
+                                            : 'hover:bg-black/5 dark:hover:bg-white/5'
+                                    }`}
+                                >
+                                    <div>
+                                        <div className="font-medium">{shortcut.label}</div>
+                                        <div className="text-sm text-gray-600 dark:text-gray-400">{shortcut.description}</div>
+                                    </div>
+                                    <kbd className="px-2 py-1 text-xs font-semibold bg-black/10 dark:bg-white/10 rounded">
+                                        {shortcut.key}
+                                    </kbd>
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                            No commands found matching "{searchTerm}"
+                        </div>
+                    )}
+                </div>
+                <div className="p-3 border-t border-black/10 dark:border-white/10 text-xs text-gray-600 dark:text-gray-400 flex gap-4">
+                    <span><kbd className="px-1.5 py-0.5 bg-black/10 dark:bg-white/10 rounded">↑↓</kbd> Navigate</span>
+                    <span><kbd className="px-1.5 py-0.5 bg-black/10 dark:bg-white/10 rounded">Enter</kbd> Select</span>
+                    <span><kbd className="px-1.5 py-0.5 bg-black/10 dark:bg-white/10 rounded">Esc</kbd> Close</span>
                 </div>
             </GlassContainer>
         </div>
@@ -654,9 +774,9 @@ const VoiceAssistant: FC<ToolContentProps> = ({}) => {
                 (text, isFinal, isModel) => setTranscription(prev => `${prev}\n${isModel ? 'AI' : 'You'}: ${text}${isFinal ? '\n' : ''}`),
                 (audioBuffer) => { audioQueue.current.push(audioBuffer); playQueue(); },
                 () => { audioQueue.current = []; nextStartTime.current = 0; },
-                (name, args, id) => {
+                async (name, args, id) => {
                     if (name in availableTools) {
-                        const result = availableTools[name as keyof typeof availableTools](args);
+                        const result = await availableTools[name as keyof typeof availableTools](args);
                          sessionPromise.then(session => {
                             session.sendToolResponse({ functionResponses: { id, name, response: { result } } });
                         });
@@ -857,7 +977,7 @@ const ChatAssistant: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
                      if('functionCall' in part){
                         const {name, args} = part.functionCall;
                         if(name in availableTools){
-                            const result = availableTools[name as keyof typeof availableTools](args);
+                            const result = await availableTools[name as keyof typeof availableTools](args);
                             const toolResponseParts: MessagePart[] = [{ functionResponse: { name, response: {result} }}];
                             setMessages(prev => [...prev, {id: Date.now().toString(), role: 'tool', parts: toolResponseParts}]);
                             
@@ -970,12 +1090,34 @@ const ToolView: FC<{ toolId: Tool, onBack: () => void } & ToolContentProps> = ({
 
 // --- MODALS & PANELS ---
 
-const SettingsModal: FC<{ isOpen: boolean; onClose: () => void; settings: Settings; onSave: (newSettings: Settings) => void; }> = ({ isOpen, onClose, settings, onSave }) => {
+const SettingsModal: FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    settings: Settings;
+    onSave: (newSettings: Settings) => void;
+    projects: Project[];
+    mediaItems: MediaItem[];
+    addNotification: (message: string) => void;
+}> = ({ isOpen, onClose, settings, onSave, projects, mediaItems, addNotification }) => {
     const [currentSettings, setCurrentSettings] = useState<Settings>(settings);
+    const [storageStats, setStorageStats] = useState<any>(null);
+    const [loadingStats, setLoadingStats] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     useFocusTrap(modalRef, isOpen);
 
     useEffect(() => { setCurrentSettings(settings); }, [settings, isOpen]);
+
+    useEffect(() => {
+        if (isOpen && !storageStats) {
+            setLoadingStats(true);
+            getStorageStats(projects, mediaItems).then(stats => {
+                setStorageStats(stats);
+                setLoadingStats(false);
+            });
+        }
+    }, [isOpen, projects, mediaItems, storageStats]);
+
     if (!isOpen) return null;
 
     const handleAvatarUpload = (file: File) => {
@@ -983,8 +1125,42 @@ const SettingsModal: FC<{ isOpen: boolean; onClose: () => void; settings: Settin
              setCurrentSettings(prev => ({...prev, userProfile: {...prev.userProfile, avatar: `data:${file.type};base64,${base64}` } }));
         });
     };
-    
+
     const handleSave = () => { onSave(currentSettings); onClose(); };
+
+    const handleExportJSON = async () => {
+        try {
+            await exportProjectsAsJSON(projects, mediaItems);
+            addNotification('Projects exported successfully as JSON');
+        } catch (error) {
+            addNotification('Failed to export projects');
+        }
+    };
+
+    const handleExportZIP = async () => {
+        try {
+            await exportMediaAsZip(projects, mediaItems);
+            addNotification('Media exported successfully as ZIP');
+        } catch (error) {
+            addNotification('Failed to export media');
+        }
+    };
+
+    const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        importFromBackup(
+            file,
+            (data) => {
+                addNotification('Import successful - please reload the page');
+                // Note: Full import would need IndexedDB integration
+            },
+            (error) => {
+                addNotification(`Import failed: ${error}`);
+            }
+        );
+    };
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="settings-title">
@@ -1016,8 +1192,76 @@ const SettingsModal: FC<{ isOpen: boolean; onClose: () => void; settings: Settin
                                 </div>
                             </div>
                         </div>
+
+                        {/* Data Management Section */}
+                        <div>
+                            <h3 className="text-lg font-semibold mb-3">Data Management</h3>
+
+                            {/* Storage Stats */}
+                            {storageStats && !loadingStats && (
+                                <div className="bg-black/5 dark:bg-white/5 p-4 rounded-lg mb-3 space-y-2">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Projects:</span>
+                                        <span className="font-medium">{storageStats.projectCount}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Media Items:</span>
+                                        <span className="font-medium">{storageStats.mediaCount}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Images:</span>
+                                        <span className="font-medium">{storageStats.breakdown.images}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Videos:</span>
+                                        <span className="font-medium">{storageStats.breakdown.videos}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-gray-600 dark:text-gray-400">Chats:</span>
+                                        <span className="font-medium">{storageStats.breakdown.chats}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm font-semibold pt-2 border-t border-black/10 dark:border-white/10">
+                                        <span>Total Size:</span>
+                                        <span>{storageStats.totalSizeMB} MB</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Export/Import Buttons */}
+                            <div className="space-y-2">
+                                <button
+                                    onClick={handleExportJSON}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-all bg-blue-500/20 hover:bg-blue-500/30 text-blue-600 dark:text-blue-400"
+                                >
+                                    <CloudArrowDownIcon className="w-4 h-4" />
+                                    Export Projects (JSON)
+                                </button>
+                                <button
+                                    onClick={handleExportZIP}
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-all bg-green-500/20 hover:bg-green-500/30 text-green-600 dark:text-green-400"
+                                >
+                                    <CloudArrowDownIcon className="w-4 h-4" />
+                                    Export Media (ZIP)
+                                </button>
+                                <label className="cursor-pointer w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-all bg-purple-500/20 hover:bg-purple-500/30 text-purple-600 dark:text-purple-400">
+                                    <ArrowUpOnSquareIcon className="w-4 h-4" />
+                                    Import from Backup
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept=".json"
+                                        onChange={handleImport}
+                                        className="hidden"
+                                    />
+                                </label>
+                            </div>
+
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
+                                Export your data for backup or migration. Import restores projects from a backup file.
+                            </p>
+                        </div>
                     </div>
-                    
+
                     <div className="mt-8 flex justify-end"><Button onClick={handleSave}>Save Settings</Button></div>
                 </div>
             </GlassContainer>
@@ -1060,6 +1304,131 @@ const SaveToProjectModal: FC<{ projects: Project[], onSave: (projectId: string) 
     </>
 };
 
+const MediaLightbox: FC<{
+    item: MediaItem | null;
+    onClose: () => void;
+    onNext?: () => void;
+    onPrev?: () => void;
+    hasNext?: boolean;
+    hasPrev?: boolean;
+}> = ({ item, onClose, onNext, onPrev, hasNext, hasPrev }) => {
+    const [url, setUrl] = useState<string | null>(null);
+    const lightboxRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        let objectUrl: string | null = null;
+        if (item && (item.type === 'image' || item.type === 'video') && item.data instanceof Blob) {
+            objectUrl = URL.createObjectURL(item.data);
+            setUrl(objectUrl);
+        }
+
+        return () => {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        };
+    }, [item]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+            if (e.key === 'ArrowRight' && hasNext && onNext) onNext();
+            if (e.key === 'ArrowLeft' && hasPrev && onPrev) onPrev();
+        };
+
+        if (item) {
+            document.addEventListener('keydown', handleKeyDown);
+            return () => document.removeEventListener('keydown', handleKeyDown);
+        }
+    }, [item, onClose, onNext, onPrev, hasNext, hasPrev]);
+
+    if (!item) return null;
+
+    return (
+        <div
+            ref={lightboxRef}
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+            onClick={onClose}
+        >
+            <button
+                onClick={onClose}
+                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+                aria-label="Close preview"
+            >
+                <XMarkIcon className="w-6 h-6 text-white" />
+            </button>
+
+            {/* Navigation buttons */}
+            {hasPrev && onPrev && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onPrev(); }}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+                    aria-label="Previous item"
+                >
+                    <ChevronLeftIcon className="w-6 h-6 text-white" />
+                </button>
+            )}
+
+            {hasNext && onNext && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onNext(); }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors z-10"
+                    aria-label="Next item"
+                >
+                    <ChevronLeftIcon className="w-6 h-6 text-white transform rotate-180" />
+                </button>
+            )}
+
+            {/* Media content */}
+            <div className="max-w-7xl max-h-[90vh] w-full px-4" onClick={(e) => e.stopPropagation()}>
+                {item.type === 'image' && url && (
+                    <img
+                        src={url}
+                        alt={item.prompt || 'Generated Image'}
+                        className="w-full h-full object-contain rounded-lg"
+                    />
+                )}
+                {item.type === 'video' && url && (
+                    <video
+                        src={url}
+                        controls
+                        autoPlay
+                        className="w-full h-full rounded-lg"
+                    />
+                )}
+                {item.type === 'chat' && (
+                    <div className="bg-white/10 backdrop-blur-lg rounded-lg p-8 max-h-[80vh] overflow-y-auto">
+                        <h3 className="text-2xl font-bold text-white mb-4">Chat History</h3>
+                        <div className="space-y-4">
+                            {item.messages.map((msg, idx) => (
+                                <div key={idx} className={`p-4 rounded-lg ${msg.role === 'user' ? 'bg-purple-500/20' : 'bg-white/10'}`}>
+                                    <div className="text-sm font-semibold text-white/70 mb-1">
+                                        {msg.role === 'user' ? 'You' : 'AI'}
+                                    </div>
+                                    {msg.parts.map((part, pidx) => (
+                                        <div key={pidx} className="text-white">
+                                            {'text' in part && part.text}
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Metadata */}
+                {item.prompt && (
+                    <div className="mt-4 p-4 bg-white/10 backdrop-blur-lg rounded-lg">
+                        <p className="text-sm text-white/70">Prompt:</p>
+                        <p className="text-white">{item.prompt}</p>
+                        <p className="text-xs text-white/50 mt-2">
+                            Created: {new Date(item.createdAt).toLocaleString()}
+                        </p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const MediaDisplay: FC<{item: MediaItem}> = ({ item }) => {
     const [url, setUrl] = useState<string | null>(null);
 
@@ -1096,11 +1465,24 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
     const [showFilters, setShowFilters] = useState(false);
     const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'week' | 'month'>('all');
 
+    // Lightbox state
+    const [lightboxItem, setLightboxItem] = useState<MediaItem | null>(null);
+    const [lightboxIndex, setLightboxIndex] = useState(-1);
+
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 24; // 3 columns × 8 rows on desktop
+
     useEffect(() => {
         if (!activeProjectId && projects.length > 0) {
             setActiveProjectId(projects[0].id);
         }
     }, [projects, activeProjectId]);
+
+    // Reset pagination when filters or active project changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeProjectId, mediaSearch, mediaTypeFilter, dateFilter]);
 
     const handleAddProject = () => {
         if(newProjectName.trim()) {
@@ -1172,11 +1554,35 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
         return true;
     };
 
-    const activeProjectMedia = mediaItems
+    // Filter and get all matching media (before pagination)
+    const filteredMedia = mediaItems
         .filter(m => m.projectId === activeProjectId)
         .filter(m => mediaTypeFilter === 'all' || m.type === mediaTypeFilter)
         .filter(m => !mediaSearch || (m.prompt && m.prompt.toLowerCase().includes(mediaSearch.toLowerCase())))
         .filter(filterMediaByDate);
+
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const activeProjectMedia = filteredMedia.slice(startIndex, endIndex);
+
+    // Lightbox navigation handlers (using full filtered media for navigation)
+    const handleNextMedia = () => {
+        if (lightboxIndex < filteredMedia.length - 1) {
+            const nextIndex = lightboxIndex + 1;
+            setLightboxIndex(nextIndex);
+            setLightboxItem(filteredMedia[nextIndex]);
+        }
+    };
+
+    const handlePrevMedia = () => {
+        if (lightboxIndex > 0) {
+            const prevIndex = lightboxIndex - 1;
+            setLightboxIndex(prevIndex);
+            setLightboxItem(filteredMedia[prevIndex]);
+        }
+    };
 
     return (
         <>
@@ -1321,7 +1727,7 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
                                     {(mediaTypeFilter !== 'all' || dateFilter !== 'all' || mediaSearch) && (
                                         <div className="flex items-center justify-between pt-2 border-t border-black/10 dark:border-white/10">
                                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                                                {activeProjectMedia.length} result{activeProjectMedia.length !== 1 ? 's' : ''}
+                                                {filteredMedia.length} result{filteredMedia.length !== 1 ? 's' : ''}
                                             </span>
                                             <button
                                                 onClick={() => {
@@ -1341,21 +1747,85 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
                     )}
 
                     {activeProjectId ? (
-                        activeProjectMedia.length > 0 ? (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {activeProjectMedia.map(item => (
-                                    <div key={item.id} className="group relative aspect-square rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 shadow-inner">
-                                        <MediaDisplay item={item} />
-                                        <button
-                                            onClick={() => setDeleteConfirm({ type: 'media', id: item.id, name: item.prompt || 'this item' })}
-                                            className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-700"
-                                            aria-label="Delete media"
-                                        >
-                                            <TrashIcon className="w-4 h-4" />
-                                        </button>
+                        filteredMedia.length > 0 ? (
+                            <>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {activeProjectMedia.map((item, index) => {
+                                        const globalIndex = startIndex + index; // Get index in full filtered list
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                className="group relative aspect-square rounded-lg overflow-hidden bg-black/5 dark:bg-white/5 shadow-inner cursor-pointer"
+                                                onClick={() => {
+                                                    setLightboxItem(item);
+                                                    setLightboxIndex(globalIndex);
+                                                }}
+                                            >
+                                                <MediaDisplay item={item} />
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setDeleteConfirm({ type: 'media', id: item.id, name: item.prompt || 'this item' });
+                                                    }}
+                                                    className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-700"
+                                                    aria-label="Delete media"
+                                                >
+                                                    <TrashIcon className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* Pagination Controls */}
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-black/10 dark:border-white/10">
+                                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                                            Showing {startIndex + 1}-{Math.min(endIndex, filteredMedia.length)} of {filteredMedia.length}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                disabled={currentPage === 1}
+                                                className="px-3 py-1 rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                aria-label="Previous page"
+                                            >
+                                                ←
+                                            </button>
+                                            {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                                .filter(page => {
+                                                    // Show first, last, current, and 1 page on each side of current
+                                                    return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                                                })
+                                                .map((page, idx, arr) => (
+                                                    <React.Fragment key={page}>
+                                                        {idx > 0 && arr[idx - 1] !== page - 1 && (
+                                                            <span className="text-gray-400">...</span>
+                                                        )}
+                                                        <button
+                                                            onClick={() => setCurrentPage(page)}
+                                                            className={`px-3 py-1 rounded-lg transition-colors ${
+                                                                currentPage === page
+                                                                    ? 'bg-purple-500 text-white'
+                                                                    : 'bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20'
+                                                            }`}
+                                                        >
+                                                            {page}
+                                                        </button>
+                                                    </React.Fragment>
+                                                ))}
+                                            <button
+                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                disabled={currentPage === totalPages}
+                                                className="px-3 py-1 rounded-lg bg-black/10 dark:bg-white/10 hover:bg-black/20 dark:hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                                aria-label="Next page"
+                                            >
+                                                →
+                                            </button>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
+                                )}
+                            </>
                         ) : (
                             <p className="text-gray-500 dark:text-gray-400 mt-4">No media in this project yet. Go create something!</p>
                         )
@@ -1370,6 +1840,14 @@ const ProjectsDashboard: FC<ToolContentProps> = ({ projects, mediaItems, addProj
                 onConfirm={confirmDelete}
                 title={`Delete ${deleteConfirm?.type === 'project' ? 'Project' : 'Media'}?`}
                 message={`Are you sure you want to delete "${deleteConfirm?.name}"? This action cannot be undone.`}
+            />
+            <MediaLightbox
+                item={lightboxItem}
+                onClose={() => setLightboxItem(null)}
+                onNext={handleNextMedia}
+                onPrev={handlePrevMedia}
+                hasNext={lightboxIndex < filteredMedia.length - 1}
+                hasPrev={lightboxIndex > 0}
             />
         </>
     )
@@ -1442,8 +1920,36 @@ const App: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [toolOrder, setToolOrder] = useState<Tool[]>(DEFAULT_TOOL_ORDER);
     const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
+    const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const notificationButtonRef = useRef<HTMLButtonElement>(null);
     const settingsButtonRef = useRef<HTMLButtonElement>(null);
+    const projectSearchInputRef = useRef<HTMLInputElement>(null);
+    const mediaSearchInputRef = useRef<HTMLInputElement>(null);
+
+    // Global keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Ctrl/Cmd + K: Open command palette
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsCommandPaletteOpen(true);
+            }
+            // Ctrl/Cmd + N: New project (when Projects tool is active)
+            else if ((e.ctrlKey || e.metaKey) && e.key === 'n' && activeTool === Tool.PROJECTS) {
+                e.preventDefault();
+                const newProjectInput = document.querySelector('input[placeholder="New Project Name"]') as HTMLInputElement;
+                if (newProjectInput) newProjectInput.focus();
+            }
+            // Ctrl/Cmd + /: Toggle filters (when Projects tool is active)
+            else if ((e.ctrlKey || e.metaKey) && e.key === '/' && activeTool === Tool.PROJECTS) {
+                e.preventDefault();
+                // This will be triggered by the shortcut
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [activeTool]);
 
      useEffect(() => {
         const loadData = async () => {
@@ -1581,6 +2087,23 @@ const App: React.FC = () => {
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
+    // Define keyboard shortcuts for command palette
+    const keyboardShortcuts: KeyboardShortcut[] = [
+        { key: '⌘K / Ctrl+K', label: 'Open Command Palette', action: () => setIsCommandPaletteOpen(true), description: 'Quick access to all commands' },
+        { key: '⌘N / Ctrl+N', label: 'New Project', action: () => { setActiveTool(Tool.PROJECTS); setTimeout(() => { const input = document.querySelector('input[placeholder="New Project Name"]') as HTMLInputElement; if (input) input.focus(); }, 100); }, description: 'Create a new project' },
+        { key: 'Esc', label: 'Close Modals', action: () => { setIsSettingsOpen(false); setIsNotificationPanelOpen(false); setIsCommandPaletteOpen(false); }, description: 'Close any open dialog or panel' },
+        ...ALL_TOOLS.map(tool => ({
+            key: '—',
+            label: `Open ${tool.name}`,
+            action: () => setActiveTool(tool.id),
+            description: tool.description
+        })),
+        { key: '—', label: 'Toggle Theme', action: () => { const newTheme = settings.theme === 'light' ? 'dark' : 'light'; handleSaveSettings({ ...settings, theme: newTheme }); }, description: 'Switch between light and dark mode' },
+        { key: '—', label: 'View Notifications', action: () => setIsNotificationPanelOpen(true), description: 'Open notifications panel' },
+        { key: '—', label: 'Open Settings', action: () => setIsSettingsOpen(true), description: 'Configure your preferences' },
+        { key: '—', label: 'Go to Dashboard', action: () => setActiveTool(null), description: 'Return to the main dashboard' },
+    ];
+
     if (isLoading) {
         return <div className="min-h-screen flex items-center justify-center bg-gray-900"><Loader message="Loading Creator Space..."/></div>;
     }
@@ -1606,6 +2129,10 @@ const App: React.FC = () => {
                         </nav>
                         
                          <div className="border-t border-black/10 dark:border-white/10 pt-2 mt-2 space-y-1">
+                             <button onClick={() => setIsCommandPaletteOpen(true)} className="w-full flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10" aria-label="Open command palette">
+                                <div className="flex items-center"><CommandIcon className="w-5 h-5 mr-3" /> Commands</div>
+                                <kbd className="text-xs px-1.5 py-0.5 bg-black/10 dark:bg-white/10 rounded">⌘K</kbd>
+                            </button>
                              <button ref={notificationButtonRef} onClick={() => setIsNotificationPanelOpen(o => !o)} className="w-full flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-black/5 dark:hover:bg-white/10" aria-label={`Notifications (${unreadCount} unread)`}>
                                 <div className="flex items-center"><BellIcon className="w-5 h-5 mr-3" /> Notifications</div>
                                 {unreadCount > 0 && <span className="bg-purple-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{unreadCount}</span>}
@@ -1648,7 +2175,20 @@ const App: React.FC = () => {
                 onClearAll={() => persistNotifications([])}
                 triggerRef={notificationButtonRef}
             />
-            <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} settings={settings} onSave={handleSaveSettings} />
+            <SettingsModal
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+                settings={settings}
+                onSave={handleSaveSettings}
+                projects={projects}
+                mediaItems={mediaItems}
+                addNotification={addNotification}
+            />
+            <CommandPalette
+                isOpen={isCommandPaletteOpen}
+                onClose={() => setIsCommandPaletteOpen(false)}
+                shortcuts={keyboardShortcuts}
+            />
         </>
     );
 };

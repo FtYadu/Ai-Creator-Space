@@ -102,14 +102,56 @@ export const GET_WEATHER_TOOL: FunctionDeclaration = {
 };
 export const TOOLS_CONFIG = [{ functionDeclarations: [GET_WEATHER_TOOL] }];
 
-export const availableTools = {
-    get_current_weather: ({ location }: { location: string }) => {
-        if (location.toLowerCase().includes("tokyo")) {
-            return { weather: "sunny", temperature: "22°C" };
-        } else if (location.toLowerCase().includes("london")) {
-            return { weather: "rainy", temperature: "12°C" };
+// Real weather API integration with fallback to mock data
+const fetchRealWeather = async (location: string): Promise<{ weather: string; temperature: string }> => {
+    const apiKey = import.meta.env.VITE_OPENWEATHER_API_KEY;
+
+    // If no API key, use mock data
+    if (!apiKey || apiKey === 'your_openweather_api_key_here') {
+        return getMockWeather(location);
+    }
+
+    try {
+        const response = await fetch(
+            `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${apiKey}&units=metric`
+        );
+
+        if (!response.ok) {
+            console.warn(`Weather API returned ${response.status}, falling back to mock data`);
+            return getMockWeather(location);
         }
-        return { weather: "clear", temperature: "25°C" };
+
+        const data = await response.json();
+
+        return {
+            weather: data.weather[0]?.main?.toLowerCase() || "clear",
+            temperature: `${Math.round(data.main.temp)}°C`
+        };
+    } catch (error) {
+        console.error("Failed to fetch real weather, using mock data:", error);
+        return getMockWeather(location);
+    }
+};
+
+const getMockWeather = (location: string): { weather: string; temperature: string } => {
+    const locationLower = location.toLowerCase();
+    if (locationLower.includes("tokyo")) {
+        return { weather: "sunny", temperature: "22°C" };
+    } else if (locationLower.includes("london")) {
+        return { weather: "rainy", temperature: "12°C" };
+    } else if (locationLower.includes("new york")) {
+        return { weather: "cloudy", temperature: "18°C" };
+    } else if (locationLower.includes("sydney")) {
+        return { weather: "sunny", temperature: "26°C" };
+    } else if (locationLower.includes("paris")) {
+        return { weather: "partly cloudy", temperature: "15°C" };
+    }
+    return { weather: "clear", temperature: "25°C" };
+};
+
+export const availableTools = {
+    get_current_weather: async ({ location }: { location: string }) => {
+        return await fetchRealWeather(location);
     }
 };
 
