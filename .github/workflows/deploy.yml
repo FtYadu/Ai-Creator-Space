@@ -3,10 +3,16 @@ name: Deploy
 on:
   push:
     branches: [ main, master ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
 
 jobs:
-  deploy:
+  deploy-vercel:
+    name: Deploy to Vercel
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
 
     steps:
     - name: Checkout code
@@ -15,7 +21,43 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20.x'
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: npm test
+
+    - name: Build project
+      run: npm run build
+      env:
+        VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        VITE_OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+
+    - name: Deploy to Vercel
+      uses: amondnet/vercel-action@v25
+      with:
+        vercel-token: ${{ secrets.VERCEL_TOKEN }}
+        vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+        vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+        vercel-args: '--prod'
+        working-directory: ./
+
+  deploy-netlify:
+    name: Deploy to Netlify (Alternative)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
         cache: 'npm'
 
     - name: Install dependencies
@@ -24,16 +66,67 @@ jobs:
     - name: Build project
       run: npm run build
       env:
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        VITE_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        VITE_OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
 
-    # Add deployment steps here based on your deployment target
-    # Examples:
-    # - Vercel: vercel --prod
-    # - Netlify: netlify deploy --prod
-    # - GitHub Pages: See gh-pages workflow
+    - name: Deploy to Netlify
+      uses: nwtgck/actions-netlify@v3.0
+      with:
+        publish-dir: './dist'
+        production-branch: main
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        deploy-message: "Deploy from GitHub Actions"
+        enable-pull-request-comment: false
+        enable-commit-comment: true
+      env:
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+  build-docker:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ secrets.DOCKER_USERNAME }}/ai-creator-space
+        tags: |
+          type=ref,event=branch
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          VITE_GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+          VITE_OPENWEATHER_API_KEY=${{ secrets.OPENWEATHER_API_KEY }}
+        cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ai-creator-space:buildcache
+        cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/ai-creator-space:buildcache,mode=max
 
     - name: Archive production artifacts
       uses: actions/upload-artifact@v4
       with:
         name: dist
         path: dist/
+        retention-days: 7
+

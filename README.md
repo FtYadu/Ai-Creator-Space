@@ -13,23 +13,28 @@ A comprehensive suite of AI-powered tools for content creation, built with React
 ## Features
 
 ### 🎨 Image Tools
+
 - **Generate Images** - Create stunning visuals from text prompts using Imagen 4.0
 - **Edit Images** - Modify images with intuitive text commands
 - **Analyze Images** - Get detailed AI-powered insights and analysis
 
 ### 🎬 Video Tools
+
 - **Generate Videos** - Bring ideas to life with text-to-video using Veo 3.1
 - **Analyze Videos** - Extract key information and understand video content
 
 ### 🎙️ Voice & Audio
+
 - **Voice Assistant** - Real-time voice conversations with Gemini Live
 - **Text-to-Speech** - Generate natural-sounding speech from any text
 
 ### 💬 Communication
+
 - **Chat Assistant** - Multi-turn conversations with AI assistance
 - **Function Calling** - Extensible tool system for custom capabilities
 
 ### 📁 Project Management
+
 - **Organize Work** - Manage creations by project
 - **Media Library** - View and manage all generated content
 - **CRUD Operations** - Create, rename, and delete projects
@@ -46,6 +51,7 @@ A comprehensive suite of AI-powered tools for content creation, built with React
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js v18 or higher
 - npm or yarn
 - A Gemini API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
@@ -53,26 +59,32 @@ A comprehensive suite of AI-powered tools for content creation, built with React
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd Ai-Creator-Space
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env.local
    ```
+
    Edit `.env.local` and add your Gemini API key:
+
    ```
    GEMINI_API_KEY=your_api_key_here
    ```
 
 4. **Start the development server**
+
    ```bash
    npm run dev
    ```
@@ -99,7 +111,57 @@ npm run lint:fix     # Fix ESLint issues
 npm run format       # Format code with Prettier
 npm run format:check # Check code formatting
 npm run type-check   # Run TypeScript type checking
+
+# Deployment
+npm run validate     # Run all checks before deployment
+npm run pre-deploy   # Comprehensive pre-deployment validation
+npm run deploy:vercel # Deploy to Vercel
+npm run deploy:docker # Deploy using Docker
 ```
+
+## Deployment
+
+### Quick Deploy to Vercel (Recommended)
+
+```bash
+# 1. Set your API key
+export VITE_GEMINI_API_KEY=your_api_key_here
+
+# 2. Deploy
+npm run deploy:vercel
+```
+
+### Deploy with Docker
+
+```bash
+# 1. Create .env file with your API keys
+echo "VITE_GEMINI_API_KEY=your_key" > .env
+
+# 2. Deploy
+npm run deploy:docker
+```
+
+### Other Options
+
+For complete deployment guides including Netlify, AWS, Google Cloud, and more, see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+### Pre-Deployment Checklist
+
+```bash
+# Run comprehensive validation
+npm run pre-deploy
+```
+
+This will check:
+
+- ✅ Node.js version
+- ✅ Environment variables
+- ✅ Dependencies
+- ✅ Type checking
+- ✅ Linting
+- ✅ Tests
+- ✅ Build
+- ✅ Required files
 
 ## Project Structure
 
@@ -134,6 +196,7 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 ## Support
 
 For questions, issues, or feature requests:
+
 - Open an issue on GitHub
 - Check the [ARCHITECTURE.md](./ARCHITECTURE.md) for technical details
 - Review [CONTRIBUTING.md](./CONTRIBUTING.md) for development help

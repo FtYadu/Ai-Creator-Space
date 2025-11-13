@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  ai-creator-space:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - VITE_GEMINI_API_KEY=${VITE_GEMINI_API_KEY}
+        - VITE_OPENWEATHER_API_KEY=${VITE_OPENWEATHER_API_KEY}
+    container_name: ai-creator-space
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - ai-creator-network
+
+networks:
+  ai-creator-network:
+    driver: bridge

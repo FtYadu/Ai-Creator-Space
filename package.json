@@ -15,7 +15,11 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,json,md}\"",
     "type-check": "tsc --noEmit",
-    "prepare": "husky"
+    "prepare": "husky",
+    "validate": "npm run lint && npm run format:check && npm test && npm run build",
+    "pre-deploy": "./scripts/pre-deploy-check.sh",
+    "deploy:vercel": "./scripts/deploy-vercel.sh",
+    "deploy:docker": "./scripts/deploy-docker.sh"
   },
   "dependencies": {
     "@google/genai": "^1.27.0",
