@@ -47,6 +47,45 @@ const ALL_TOOLS = [
 ];
 const TOOL_MAP = new Map(ALL_TOOLS.map(t => [t.id, t]));
 
+const TOOL_QUICK_STARTS: Record<Tool, { prompts: string[]; secondary?: { label: string; target: Tool; prompt?: string } }> = {
+    [Tool.PROJECTS]: {
+        prompts: ["Create a 'Launch campaign' project", 'Sort assets by client name'],
+        secondary: { label: 'View recent outputs', target: Tool.PROJECTS }
+    },
+    [Tool.IMAGE_GEN]: {
+        prompts: ['Cinematic neon portrait of a city explorer', 'Product mockup on a clean white background'],
+        secondary: { label: 'View recent outputs', target: Tool.PROJECTS }
+    },
+    [Tool.IMAGE_EDIT]: {
+        prompts: ['Remove the background and add a soft shadow', 'Turn this photo into a pencil sketch'],
+        secondary: { label: 'View recent outputs', target: Tool.PROJECTS }
+    },
+    [Tool.IMAGE_ANALYZE]: {
+        prompts: ['Describe the scene, colors, and mood', 'List UX issues you notice in this screenshot'],
+        secondary: { label: 'View recent outputs', target: Tool.PROJECTS }
+    },
+    [Tool.VIDEO_GEN]: {
+        prompts: ['30-second promo for a smart home app', 'Vertical travel recap with bold captions'],
+        secondary: { label: 'View recent outputs', target: Tool.PROJECTS }
+    },
+    [Tool.VIDEO_ANALYZE]: {
+        prompts: ['Summarize key scenes and actions', 'Pull timestamps for important quotes'],
+        secondary: { label: 'View recent outputs', target: Tool.PROJECTS }
+    },
+    [Tool.VOICE_ASSISTANT]: {
+        prompts: ['Start a daily briefing', 'Brainstorm podcast interview questions'],
+        secondary: { label: 'Learn more', target: Tool.CHAT, prompt: 'How do I get the most from the voice assistant?' }
+    },
+    [Tool.TTS]: {
+        prompts: ['Welcome to our app—here is how to get started.', 'Explain how the voice API works in 3 steps.'],
+        secondary: { label: 'Learn more', target: Tool.CHAT, prompt: 'Give tips for crafting great text-to-speech scripts.' }
+    },
+    [Tool.CHAT]: {
+        prompts: ['Write a creative brief for a music video.', 'Draft a project status update with next steps.'],
+        secondary: { label: 'View recent outputs', target: Tool.PROJECTS }
+    },
+};
+
 // --- ACCESSIBILITY HOOK ---
 const useFocusTrap = (ref: React.RefObject<HTMLElement>, isOpen: boolean) => {
     const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -273,9 +312,10 @@ interface ToolContentProps {
     deleteProject: (id: string) => void;
     renameProject: (id: string, newName: string) => void;
     deleteMediaItem: (id: string) => void;
+    prefillPrompt?: string;
 }
 
-const ImageGenerator: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
+const ImageGenerator: FC<ToolContentProps> = ({ saveMediaItem, projects, prefillPrompt }) => {
     const [prompt, setPrompt] = useState('');
     const [negativePrompt, setNegativePrompt] = useState('');
     const [creativity, setCreativity] = useState(0.8);
@@ -283,6 +323,10 @@ const ImageGenerator: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
     const [result, setResult] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (prefillPrompt) setPrompt(prefillPrompt);
+    }, [prefillPrompt]);
 
     const handleSubmit = async () => {
         if (!prompt) { setError('Please enter a prompt.'); return; }
@@ -328,7 +372,7 @@ const ImageGenerator: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
     );
 };
 
-const ImageEditor: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
+const ImageEditor: FC<ToolContentProps> = ({ saveMediaItem, projects, prefillPrompt }) => {
     const [image, setImage] = useState<{ file: File; base64: string; preview: string } | null>(null);
     const [prompt, setPrompt] = useState('');
     const [result, setResult] = useState<string | null>(null);
@@ -336,6 +380,10 @@ const ImageEditor: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
     const [error, setError] = useState('');
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
     
+    useEffect(() => {
+        if (prefillPrompt) setPrompt(prefillPrompt);
+    }, [prefillPrompt]);
+
     const handleFileUpload = async (file: File) => {
         setUploadProgress(0);
         const base64 = await geminiService.fileToBase64(file, setUploadProgress);
@@ -378,13 +426,17 @@ const ImageEditor: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
     );
 };
 
-const ImageAnalyzer: FC<ToolContentProps> = ({}) => {
+const ImageAnalyzer: FC<ToolContentProps> = ({ prefillPrompt }) => {
     const [image, setImage] = useState<{ file: File; base64: string; preview: string } | null>(null);
     const [prompt, setPrompt] = useState('Describe this image in detail.');
     const [result, setResult] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [uploadProgress, setUploadProgress] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (prefillPrompt) setPrompt(prefillPrompt);
+    }, [prefillPrompt]);
 
     const handleFileUpload = async (file: File) => {
         setUploadProgress(0);
@@ -415,7 +467,7 @@ const ImageAnalyzer: FC<ToolContentProps> = ({}) => {
 };
 
 
-const VideoGenerator: FC<ToolContentProps> = ({ saveMediaItem, projects, addNotification }) => {
+const VideoGenerator: FC<ToolContentProps> = ({ saveMediaItem, projects, addNotification, prefillPrompt }) => {
     const [prompt, setPrompt] = useState('');
     const [image, setImage] = useState<{ file: File; base64: string; preview: string } | null>(null);
     const [aspectRatio, setAspectRatio] = useState<'16:9' | '9:16'>('16:9');
@@ -425,6 +477,10 @@ const VideoGenerator: FC<ToolContentProps> = ({ saveMediaItem, projects, addNoti
     const [status, setStatus] = useState('');
     const [progress, setProgress] = useState(0);
     const [isApiKeySelected, setIsApiKeySelected] = useState(false);
+
+    useEffect(() => {
+        if (prefillPrompt) setPrompt(prefillPrompt);
+    }, [prefillPrompt]);
 
     useEffect(() => {
         // @ts-ignore
@@ -527,12 +583,16 @@ const VideoGenerator: FC<ToolContentProps> = ({ saveMediaItem, projects, addNoti
     );
 };
 
-const VideoAnalyzer: FC<ToolContentProps> = ({}) => {
+const VideoAnalyzer: FC<ToolContentProps> = ({ prefillPrompt }) => {
     const [videoFile, setVideoFile] = useState<File | null>(null);
     const [prompt, setPrompt] = useState('Summarize this video. What are the key objects and actions?');
     const [result, setResult] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (prefillPrompt) setPrompt(prefillPrompt);
+    }, [prefillPrompt]);
 
     const handleSubmit = async () => {
         if (!videoFile) {
@@ -713,13 +773,17 @@ const VoiceAssistant: FC<ToolContentProps> = ({}) => {
     );
 };
 
-const TextToSpeech: FC<ToolContentProps> = ({}) => {
+const TextToSpeech: FC<ToolContentProps> = ({ prefillPrompt }) => {
     const [text, setText] = useState('Hello! I am a friendly AI assistant from Google.');
     const [voice, setVoice] = useState('Kore');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const audioRef = useRef<AudioBufferSourceNode | null>(null);
     
+    useEffect(() => {
+        if (prefillPrompt) setText(prefillPrompt);
+    }, [prefillPrompt]);
+
     const handleSubmit = async () => {
         if (!text) { setError('Please enter some text.'); return; }
         setLoading(true); setError('');
@@ -749,7 +813,7 @@ const TextToSpeech: FC<ToolContentProps> = ({}) => {
     );
 };
 
-const ChatAssistant: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
+const ChatAssistant: FC<ToolContentProps> = ({ saveMediaItem, projects, prefillPrompt }) => {
     const [mode, setMode] = useState<'quick' | 'complex'>('quick');
     const [messages, setMessages] = useState<DisplayMessage[]>([]);
     const [input, setInput] = useState('');
@@ -759,6 +823,10 @@ const ChatAssistant: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
     const chatRef = useRef<Chat | null>(null);
     const messagesEndRef = useRef<HTMLDivElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (prefillPrompt) setInput(prefillPrompt);
+    }, [prefillPrompt]);
 
     const scrollToBottom = () => messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     useEffect(scrollToBottom, [messages, loading]);
@@ -928,21 +996,21 @@ const ChatAssistant: FC<ToolContentProps> = ({ saveMediaItem, projects }) => {
     );
 };
 
-const ToolView: FC<{ toolId: Tool, onBack: () => void } & ToolContentProps> = ({ toolId, onBack, ...props }) => {
+const ToolView: FC<{ toolId: Tool, onBack: () => void, prefillPrompt?: string } & ToolContentProps> = ({ toolId, onBack, prefillPrompt, ...props }) => {
     const tool = TOOL_MAP.get(toolId);
     if (!tool) return null;
 
     const renderTool = () => {
         switch (toolId) {
-            case Tool.PROJECTS: return <ProjectsDashboard {...props} />;
-            case Tool.IMAGE_GEN: return <ImageGenerator {...props} />;
-            case Tool.IMAGE_EDIT: return <ImageEditor {...props} />;
-            case Tool.IMAGE_ANALYZE: return <ImageAnalyzer {...props} />;
-            case Tool.VIDEO_GEN: return <VideoGenerator {...props} />;
-            case Tool.VIDEO_ANALYZE: return <VideoAnalyzer {...props} />;
-            case Tool.VOICE_ASSISTANT: return <VoiceAssistant {...props} />;
-            case Tool.TTS: return <TextToSpeech {...props} />;
-            case Tool.CHAT: return <ChatAssistant {...props} />;
+            case Tool.PROJECTS: return <ProjectsDashboard {...props} prefillPrompt={prefillPrompt} />;
+            case Tool.IMAGE_GEN: return <ImageGenerator {...props} prefillPrompt={prefillPrompt} />;
+            case Tool.IMAGE_EDIT: return <ImageEditor {...props} prefillPrompt={prefillPrompt} />;
+            case Tool.IMAGE_ANALYZE: return <ImageAnalyzer {...props} prefillPrompt={prefillPrompt} />;
+            case Tool.VIDEO_GEN: return <VideoGenerator {...props} prefillPrompt={prefillPrompt} />;
+            case Tool.VIDEO_ANALYZE: return <VideoAnalyzer {...props} prefillPrompt={prefillPrompt} />;
+            case Tool.VOICE_ASSISTANT: return <VoiceAssistant {...props} prefillPrompt={prefillPrompt} />;
+            case Tool.TTS: return <TextToSpeech {...props} prefillPrompt={prefillPrompt} />;
+            case Tool.CHAT: return <ChatAssistant {...props} prefillPrompt={prefillPrompt} />;
             default: return <div>Tool not implemented</div>;
         }
     };
@@ -1300,6 +1368,7 @@ const App: React.FC = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [toolOrder, setToolOrder] = useState<Tool[]>(DEFAULT_TOOL_ORDER);
+    const [toolPrefills, setToolPrefills] = useState<Partial<Record<Tool, string>>>({});
     const [isNotificationPanelOpen, setIsNotificationPanelOpen] = useState(false);
     const notificationButtonRef = useRef<HTMLButtonElement>(null);
     const settingsButtonRef = useRef<HTMLButtonElement>(null);
@@ -1445,6 +1514,18 @@ const App: React.FC = () => {
     }
 
     const orderedTools = toolOrder.map(id => ALL_TOOLS.find(t => t.id === id)).filter(Boolean) as (typeof ALL_TOOLS)[0][];
+    const handleOpenTool = (toolId: Tool, prompt?: string) => {
+        setToolPrefills(prev => {
+            const updated = { ...prev };
+            if (prompt) {
+                updated[toolId] = prompt;
+            } else {
+                delete updated[toolId];
+            }
+            return updated;
+        });
+        setActiveTool(toolId);
+    };
 
     return (
         <>
@@ -1461,7 +1542,7 @@ const App: React.FC = () => {
 
                         <nav className="space-y-2 flex-grow">
                             <button onClick={()=>setActiveTool(null)} className={`w-full flex items-center p-3 rounded-lg transition-colors ${!activeTool ? 'bg-purple-500/30' : 'hover:bg-black/5 dark:hover:bg-white/10'}`}><HomeIcon className="w-5 h-5 mr-3" /> Dashboard</button>
-                            {orderedTools.map(tool => <button key={tool.id} onClick={() => setActiveTool(tool.id)} className={`w-full flex items-center p-3 rounded-lg transition-colors text-left ${activeTool === tool.id ? 'bg-purple-500/30' : 'hover:bg-black/5 dark:hover:bg-white/10'}`}><tool.Icon className="w-5 h-5 mr-3" /> {tool.name}</button>)}
+                            {orderedTools.map(tool => <button key={tool.id} onClick={() => handleOpenTool(tool.id)} className={`w-full flex items-center p-3 rounded-lg transition-colors text-left ${activeTool === tool.id ? 'bg-purple-500/30' : 'hover:bg-black/5 dark:hover:bg-white/10'}`}><tool.Icon className="w-5 h-5 mr-3" /> {tool.name}</button>)}
                         </nav>
                         
                          <div className="border-t border-black/10 dark:border-white/10 pt-2 mt-2 space-y-1">
@@ -1477,22 +1558,82 @@ const App: React.FC = () => {
 
                 <main className="flex-1 min-w-0">
                     {activeTool ? (
-                        <ToolView toolId={activeTool} onBack={() => setActiveTool(null)} addNotification={addNotification} saveMediaItem={saveMediaItem} projects={projects} mediaItems={mediaItems} addProject={addProject} deleteProject={deleteProject} renameProject={renameProject} deleteMediaItem={deleteMediaItem}/>
+                        <ToolView
+                            toolId={activeTool}
+                            prefillPrompt={activeTool ? toolPrefills[activeTool] : undefined}
+                            onBack={() => setActiveTool(null)}
+                            addNotification={addNotification}
+                            saveMediaItem={saveMediaItem}
+                            projects={projects}
+                            mediaItems={mediaItems}
+                            addProject={addProject}
+                            deleteProject={deleteProject}
+                            renameProject={renameProject}
+                            deleteMediaItem={deleteMediaItem}
+                        />
                     ) : (
                         <div className="h-full">
                              <GlassContainer className="p-6 h-full overflow-y-auto">
                                 <h2 className="text-3xl font-bold mb-6">Dashboard</h2>
                                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {orderedTools.map(tool => (
-                                        <div key={tool.id} draggable="true" onDragStart={e => handleDragStart(e, tool.id)} onDragOver={handleDragOver} onDrop={e => handleDrop(e, tool.id)} className={`transition-opacity ${draggedTool === tool.id ? 'opacity-50' : 'opacity-100'}`}>
-                                            <button onClick={() => setActiveTool(tool.id)} className="text-left w-full h-full">
-                                                <GlassContainer className="p-6 h-full hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1">
+                                    {orderedTools.map(tool => {
+                                        const quickStart = TOOL_QUICK_STARTS[tool.id];
+                                        return (
+                                            <div
+                                                key={tool.id}
+                                                draggable="true"
+                                                onDragStart={e => handleDragStart(e, tool.id)}
+                                                onDragOver={handleDragOver}
+                                                onDrop={e => handleDrop(e, tool.id)}
+                                                className={`transition-opacity ${draggedTool === tool.id ? 'opacity-50' : 'opacity-100'}`}
+                                            >
+                                                <GlassContainer
+                                                    className="p-6 h-full hover:border-purple-500/50 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={() => handleOpenTool(tool.id)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === 'Enter' || e.key === ' ') {
+                                                            e.preventDefault();
+                                                            handleOpenTool(tool.id);
+                                                        }
+                                                    }}
+                                                >
                                                     <div className="flex items-center space-x-4 mb-3"><tool.Icon className="w-8 h-8 text-purple-500 dark:text-purple-400" /><h3 className="text-xl font-semibold">{tool.name}</h3></div>
                                                     <p className="text-gray-600 dark:text-gray-300">{tool.description}</p>
+                                                    {quickStart && (
+                                                        <div className="mt-4 space-y-3">
+                                                            <div className="flex flex-wrap gap-2">
+                                                                {quickStart.prompts.map(prompt => (
+                                                                    <button
+                                                                        key={prompt}
+                                                                        type="button"
+                                                                        onClick={(e) => { e.stopPropagation(); handleOpenTool(tool.id, prompt); }}
+                                                                        className="px-3 py-1 text-sm rounded-full bg-purple-100/70 dark:bg-purple-500/20 text-purple-800 dark:text-purple-100 hover:bg-purple-200 dark:hover:bg-purple-500/40 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                                    >
+                                                                        {prompt}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                            {quickStart.secondary && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="inline-flex items-center gap-1 text-sm font-medium text-purple-700 dark:text-purple-200 hover:underline focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleOpenTool(quickStart.secondary.target, quickStart.secondary.prompt);
+                                                                    }}
+                                                                >
+                                                                    {quickStart.secondary.label}
+                                                                    <ArrowUpOnSquareIcon className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </GlassContainer>
-                                            </button>
-                                        </div>
-                                    ))}
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </GlassContainer>
                         </div>
